@@ -3,7 +3,8 @@
 // level, and draws shut again as you scroll past it. After the last painting comes the
 // final level: a face-off with a giant pink blob.
 //
-// Running levels: space (or a tap / click) starts and jumps.
+// Running levels: space (or a tap / click) starts and jumps. Things to dodge:
+// ground obstacles, flying white blobs, and the odd cowboy taking a shot at you.
 // Final level:    space shoots the bow, the up arrow jumps.
 // Once a level is running, the arrow keys move the runner left and right.
 
@@ -12,15 +13,16 @@ const HomeGames = (() => {
 
     // blobs: how often a white blob comes flying at you instead of a ground obstacle
     // (0 = never, 1 = always). high: whether some fly at head height, where jumping gets you hit.
+    // cowboys: how often a cowboy steps in from the right and takes a shot at you.
     const LEVELS = [
         { name: 'LEVEL 1', speed: 220, goal: 8,  scenery: 'hills',     obstacles: ['rock'],                   sun: 30,
-          blobs: 0,    high: false, win: "You're such a good boy!",    lose: 'Not trying hard enough!' },
+          blobs: 0,    high: false, cowboys: 0.12, win: "You're such a good boy!",    lose: 'Not trying hard enough!' },
         { name: 'LEVEL 2', speed: 255, goal: 10, scenery: 'mountains', obstacles: ['rock', 'cactus'],         sun: 16,
-          blobs: 0.3,  high: false, win: "We're really so impressed!", lose: "focus, we're watching" },
+          blobs: 0.3,  high: false, cowboys: 0.15, win: "We're really so impressed!", lose: "focus, we're watching" },
         { name: 'LEVEL 3', speed: 295, goal: 12, scenery: 'city',      obstacles: ['post', 'spike', 'cactus'], sun: 2,
-          blobs: 0.4,  high: true,  win: "You're our favorite",        lose: 'You let us down' },
+          blobs: 0.4,  high: true,  cowboys: 0.18, win: "You're our favorite",        lose: 'You let us down' },
         { name: 'LEVEL 4', speed: 335, goal: 14, scenery: 'pines',     obstacles: ['rock', 'cactus', 'post', 'spike'], sun: -12,
-          blobs: 0.5,  high: true,  win: "You're our favorite",        lose: 'You let us down' }
+          blobs: 0.5,  high: true,  cowboys: 0.22, win: "You're our favorite",        lose: 'You let us down' }
     ];
     const SKY = [
         ['#3a1466', '#8a2f8f', '#ff9a3d'],
@@ -44,6 +46,7 @@ const HomeGames = (() => {
     const PINK = '#ef9a86';         // the big pink blob
     const OUTLINE = '#17475c';      // its dark blue outline
     const BLOB_SPEED = 1.6;         // how much faster than the ground a white blob flies
+    const BULLET_SPEED = 330;       // how much faster than the ground a cowboy's bullet flies
     const GRAVITY = 1400;
     const JUMP = 520;
     const WALK = 190;               // how fast the arrow keys move the runner across the screen
@@ -83,6 +86,7 @@ const HomeGames = (() => {
             x: 0, y: GROUND, vy: 0,
             left: false, right: false,   // arrow keys being held
             obstacles: [], plan: [], planned: 0, passed: 0,
+            cowboys: [], smoke: [], puff: 0,
             // final level
             hp: BOSS.hits, arrows: [], shots: [], drops: [], splats: [],
             cool: 0, attack: 0, flash: 0, dying: 0, burst: false,
@@ -112,6 +116,7 @@ const HomeGames = (() => {
             g.scroll = 0; g.time = 0; g.x = startX(); g.y = GROUND; g.vy = 0;
             g.left = g.right = false;
             g.obstacles = []; g.plan = []; g.planned = 0; g.passed = 0;
+            g.cowboys = []; g.smoke = []; g.puff = 0;
             g.hp = BOSS.hits; g.arrows = []; g.shots = []; g.drops = []; g.splats = [];
             g.cool = 0; g.attack = 1.3; g.flash = 0; g.dying = 0; g.burst = false;
         }
@@ -132,7 +137,10 @@ const HomeGames = (() => {
             const prev = g.plan[g.plan.length - 1];
             const arrival = prev ? prev.arrival + rand(0.95, 1.7) : travel(speed) + 0.4;
             let o;
-            if (Math.random() < level.blobs) {
+            if (Math.random() < level.cowboys) {
+                // a bullet at chest height: it has to be jumped
+                o = { type: 'bullet', w: 10, h: 4, up: 26, vx: speed + BULLET_SPEED };
+            } else if (Math.random() < level.blobs) {
                 // low and middle blobs have to be jumped; a high one sails overhead, so don't jump into it
                 const heights = level.high ? [14, 30, 62] : [14, 30];
                 const up = heights[Math.floor(Math.random() * heights.length)];
@@ -161,14 +169,21 @@ const HomeGames = (() => {
             // plan far enough ahead, then release each thing when it is due
             while (g.planned < level.goal && (!g.plan.length || g.plan[g.plan.length - 1].arrival < g.time + travel(speed) + 0.5)) planNext();
             for (const o of g.plan) {
-                if (!o.released && g.time >= o.arrival - travel(o.vx)) { o.released = true; g.obstacles.push(o); }
+                if (o.released) continue;
+                if (o.type === 'bullet') {
+                    // the cowboy steps in first, then fires from where he stands
+                    const fire = o.arrival - (g.width - 46 - startX()) / o.vx;
+                    if (!o.cowboy && g.time >= fire - 0.75) { o.cowboy = true; g.cowboys.push({ born: g.time, fire }); }
+                    if (g.time >= fire) { o.released = true; o.x = g.width - 46; g.obstacles.push(o); }
+                } else if (g.time >= o.arrival - travel(o.vx)) { o.released = true; g.obstacles.push(o); }
             }
+            g.cowboys = g.cowboys.filter(c => g.time < c.fire + 1.2);
 
             const px = g.x;
             for (const o of g.obstacles) {
                 // slightly forgiving hit boxes
                 const overlapX = px + 18 > o.x + 3 && px + 4 < o.x + o.w - 3;
-                const hit = o.type === 'blob'
+                const hit = o.up !== undefined
                     ? overlapX && g.y > GROUND - o.up - o.h / 2 + 3 && g.y - 42 < GROUND - o.up + o.h / 2 - 3
                     : overlapX && g.y > GROUND - o.h + 4;
                 if (hit) { lose(); return; }
@@ -281,6 +296,15 @@ const HomeGames = (() => {
             g.vy += GRAVITY * dt;
             g.y += g.vy * dt;
             if (g.y >= GROUND) { g.y = GROUND; g.vy = 0; }
+
+            // cigarette smoke: little puffs left behind in the air
+            g.puff -= dt;
+            if (g.puff <= 0) {
+                g.puff = 0.09;
+                g.smoke.push({ x: g.x + 26, y: g.y - 37, vx: boss ? rand(-10, 4) : -speed * 0.35 + rand(-10, 10), vy: rand(-22, -10), age: 0 });
+            }
+            for (const m of g.smoke) { m.age += dt; m.x += m.vx * dt; m.y += m.vy * dt; }
+            g.smoke = g.smoke.filter(m => m.age < 1.1);
 
             if (boss) {
                 if (dir) g.phase += dt * 14;
@@ -412,7 +436,59 @@ const HomeGames = (() => {
             ctx.restore();
         }
 
+        // A cowboy, facing left: hat, long coat, one arm out with a pistol.
+        // He steps in from the right edge, fires once, and steps back out.
+        function drawCowboy(c) {
+            const since = g.time - c.born, after = g.time - c.fire;
+            const slideIn = 1 - Math.min(1, since / 0.45), slideOut = Math.max(0, (after - 0.45) / 0.6);
+            const ease = v => v * v;
+            const x = g.width - 30 + (ease(slideIn) + ease(Math.min(1, slideOut))) * 60;
+            const y = GROUND;
+            const kick = after > 0 && after < 0.12 ? 2 : 0;      // recoil
+            ctx.fillStyle = SILHOUETTE;
+            ctx.strokeStyle = SILHOUETTE;
+            ctx.lineCap = 'butt';
+            ctx.lineJoin = 'miter';
+            ctx.lineWidth = 5;
+            ctx.beginPath();                                      // bow-legged stance
+            ctx.moveTo(x + 2, y - 20); ctx.lineTo(x - 5, y - 9); ctx.lineTo(x - 5, y);
+            ctx.moveTo(x + 6, y - 20); ctx.lineTo(x + 12, y - 9); ctx.lineTo(x + 11, y);
+            ctx.stroke();
+            ctx.beginPath();                                      // coat
+            ctx.moveTo(x - 3, y - 36); ctx.lineTo(x + 11, y - 36); ctx.lineTo(x + 13, y - 15); ctx.lineTo(x - 5, y - 15);
+            ctx.fill();
+            ctx.fillRect(x - 1, y - 46, 10, 10);                  // head
+            ctx.fillRect(x - 9, y - 47.5, 26, 2.6);               // hat brim
+            ctx.fillRect(x - 2, y - 54, 12, 7);                   // hat crown
+            ctx.lineWidth = 4;                                    // gun arm
+            ctx.beginPath();
+            ctx.moveTo(x + 2, y - 33); ctx.lineTo(x - 13 + kick, y - 28);
+            ctx.stroke();
+            ctx.fillRect(x - 22 + kick, y - 30.5, 10, 3);         // pistol
+            ctx.fillRect(x - 14 + kick, y - 30, 3, 6);
+            if (after > 0 && after < 0.09) {                      // muzzle flash
+                ctx.fillStyle = '#ffd98a';
+                ctx.beginPath();
+                ctx.moveTo(x - 23, y - 29);
+                ctx.lineTo(x - 34, y - 34); ctx.lineTo(x - 30, y - 29); ctx.lineTo(x - 36, y - 26); ctx.lineTo(x - 23, y - 27.5);
+                ctx.fill();
+            }
+        }
+
         function drawObstacle(o) {
+            if (o.type === 'bullet') {
+                const y = GROUND - o.up;
+                const streak = ctx.createLinearGradient(o.x, 0, o.x + 34, 0);
+                streak.addColorStop(0, 'rgba(255, 217, 138, 0.9)');
+                streak.addColorStop(1, 'rgba(255, 217, 138, 0)');
+                ctx.fillStyle = streak;
+                ctx.fillRect(o.x + 4, y - 0.8, 30, 1.6);
+                ctx.fillStyle = '#ffe9b8';
+                ctx.beginPath();
+                ctx.ellipse(o.x + 5, y, 5, 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                return;
+            }
             if (o.type === 'blob') {
                 const r = o.h / 2 + 1;
                 drawLiquid(o.x + r, GROUND - o.up, r, o.w - r + 6, 0, o.seed);
@@ -639,6 +715,13 @@ const HomeGames = (() => {
             ctx.rotate(Math.atan2(shoulder.x - hip.x, hip.y - shoulder.y));
             ctx.fillRect(-6, -16, 12, 17);        // torso
             ctx.fillRect(-4.5, -28, 11, 11);      // head
+            ctx.strokeStyle = WHITE;              // cigarette
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(6.5, -20); ctx.lineTo(13, -21);
+            ctx.stroke();
+            ctx.fillStyle = Math.sin(g.time * 6) > 0.3 ? '#ffb347' : '#ff6a1f';   // the ember glows
+            ctx.fillRect(13, -22, 2, 2);
             ctx.restore();
         }
 
@@ -655,7 +738,17 @@ const HomeGames = (() => {
             ctx.fillStyle = SILHOUETTE;
             ctx.fillRect(0, GROUND, g.width, VIEW_H - GROUND);
             if (boss) drawFinalLevel();
-            else g.obstacles.forEach(drawObstacle);
+            else {
+                g.cowboys.forEach(drawCowboy);
+                g.obstacles.forEach(drawObstacle);
+            }
+            for (const m of g.smoke) {
+                const life = m.age / 1.1;
+                ctx.fillStyle = `rgba(235, 225, 240, ${(0.42 * (1 - life)).toFixed(3)})`;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, 1.4 + life * 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
             drawRunner(g.x, g.y);
 
             const small = g.width < 420;
@@ -693,7 +786,7 @@ const HomeGames = (() => {
             } else if (g.state === 'clear') {
                 const next = games[index + 1];
                 label(level.win, g.width / 2, 62, big, 'center');
-                label(boss ? 'the blob is no more' : next && next.boss ? 'one more thing waits below the last painting ↓' : 'keep scrolling for the next level ↓', g.width / 2, 80, sub, 'center');
+                label(boss ? 'the blob is no more' : next && next.boss ? "Don't be scared!" : 'keep scrolling for the next level ↓', g.width / 2, 80, sub, 'center');
             }
         }
 
