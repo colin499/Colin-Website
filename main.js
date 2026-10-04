@@ -186,6 +186,7 @@ function checkWalker() {
         walkerImg.style.setProperty('--rot', (dx >= 0 ? 12 : -12) + 'deg');
         if (!attacking) { attacking = true; walker.classList.add('attacking'); }
         spawnDistress();
+        attackSounds();
     } else if (attacking) {
         stopAttack();
     }
@@ -228,9 +229,25 @@ function spawnDistress() {
     }
 }
 
+// Attack sound: a cat recording that plays for as long as the attack lasts.
+// Browsers only allow sound after the visitor has clicked or pressed a key
+// somewhere on the page, so the attack is silent until then.
+const SOUND_VOLUME = 0.6;     // 0 = silent, 1 = full volume
+const attackSound = new Audio('assets/sounds/cat-attack.mp3');
+attackSound.loop = true;
+attackSound.volume = SOUND_VOLUME;
+attackSound.preload = 'auto';
+// The recording opens with a moment of near silence, so start just past it.
+attackSound.addEventListener('loadedmetadata', () => { attackSound.currentTime = 0.6; }, { once: true });
+
+function attackSounds() {
+    if (attackSound.paused) attackSound.play().catch(() => {});
+}
+
 function stopAttack() {
     attacking = false;
     walker.classList.remove('attacking');
+    attackSound.pause();
 }
 
 setInterval(checkWalker, 60);

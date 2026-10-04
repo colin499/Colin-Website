@@ -14,12 +14,12 @@ const backgrounds = [
         "title": "2 IMG 9166"
     },
     {
-        "image": "assets/background/3-IMG_8109.jpg",
-        "title": "3 IMG 8109"
+        "image": "assets/background/3-IMG_8568.jpg",
+        "title": "3 IMG 8568"
     },
     {
-        "image": "assets/background/4-IMG_8568.jpg",
-        "title": "4 IMG 8568"
+        "image": "assets/background/4-IMG_8109.jpg",
+        "title": "4 IMG 8109"
     },
     {
         "image": "assets/background/5-IMG_8739.jpg",
@@ -33,6 +33,13 @@ const posts = [
         "date": "2026-10-04",
         "title": "Jumpy",
         "image": "content/paintings/Jumpy.jpeg",
+        "caption": "oil on wood , 2026"
+    },
+    {
+        "type": "painting",
+        "date": "2026-10-04",
+        "title": "Mr. Anderson",
+        "image": "content/paintings/Mr. Anderson.jpeg",
         "caption": "oil on wood , 2026"
     },
     {

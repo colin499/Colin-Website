@@ -5,14 +5,14 @@
 }
 
 :root {
-    --tan: #f0e2c8;
+    --paper: #f6cfc6;   /* page colour: pale rose blush, like the pinks in the paintings */
     --black: #111;
     --muted: rgba(0, 0, 0, 0.4);
     --border: 2px solid #111;
 }
 
 body {
-    background-color: var(--tan);
+    background-color: var(--paper);
     color: var(--black);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
@@ -29,7 +29,7 @@ header {
     border-bottom: var(--border);
     position: sticky;
     top: 0;
-    background-color: var(--tan);
+    background-color: var(--paper);
     z-index: 10;
 }
 
@@ -68,7 +68,7 @@ header {
     position: absolute;
     right: 0;
     top: calc(100% + 0.5rem);
-    background-color: var(--tan);
+    background-color: var(--paper);
     border: var(--border);
     list-style: none;
     min-width: 100%;
@@ -85,7 +85,7 @@ header {
 
 .dropdown-menu li:hover {
     background-color: var(--black);
-    color: var(--tan);
+    color: var(--paper);
 }
 
 .dropdown.open .dropdown-menu {
@@ -185,7 +185,7 @@ a:hover {
 
 .button:hover {
     background-color: var(--black);
-    color: var(--tan);
+    color: var(--paper);
     opacity: 1;
 }
 
@@ -274,11 +274,16 @@ body.is-home .dropdown {
     pointer-events: auto;
 }
 
+/* Home page text sits straight on the paintings, with no box. A soft glow
+   in the page colour keeps it readable over dark paint. */
 body.is-home .site-title,
-body.is-home .dropdown-toggle {
-    background-color: var(--tan);
-    border: var(--border);
-    padding: 0.3rem 0.7rem;
+body.is-home .dropdown-toggle,
+.home-card {
+    font-weight: 500;
+    text-shadow:
+        0 0 2px var(--paper), 0 0 2px var(--paper),
+        0 0 6px var(--paper), 0 0 6px var(--paper),
+        0 0 14px var(--paper), 0 0 14px var(--paper);
 }
 
 /* Each painting is as wide as the screen and as tall as it needs to be,
@@ -308,11 +313,9 @@ body.is-home .dropdown-toggle {
     left: 2rem;
     top: 50%;
     transform: translateY(-50%);
-    width: 300px;
+    width: 340px;
     max-width: calc(100% - 4rem);
     padding: 1.5rem 1.75rem 1.75rem;
-    background-color: var(--tan);
-    border: var(--border);
     pointer-events: auto;
 }
 
@@ -331,7 +334,28 @@ body.is-home .dropdown-toggle {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem 1.25rem;
+    gap: 0.75rem;
+}
+
+.home-links a {
+    display: inline-block;
+    padding: 0.55rem 1.2rem;
+    font-size: 16px;
+    background-color: var(--paper);
+    border: var(--border);
+    box-shadow: 3px 3px 0 var(--black);
+    text-shadow: none;
+}
+
+.home-links a:hover {
+    background-color: var(--black);
+    color: var(--paper);
+    opacity: 1;
+}
+
+.home-links a:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
 }
 
 @media (max-width: 700px) {
@@ -406,7 +430,7 @@ body.is-home .dropdown-toggle {
     font-weight: 500;
     line-height: 1;
     white-space: nowrap;
-    text-shadow: 1px 1px 0 var(--tan), -1px -1px 0 var(--tan), 1px -1px 0 var(--tan), -1px 1px 0 var(--tan);
+    text-shadow: 1px 1px 0 var(--paper), -1px -1px 0 var(--paper), 1px -1px 0 var(--paper), -1px 1px 0 var(--paper);
     opacity: 0;
 }
 
