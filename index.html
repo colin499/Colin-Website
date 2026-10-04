@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Foood</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <a href="#" class="site-title" onclick="selectFilter('home', 'home'); return false;">Brain Foood</a>
+        <nav class="dropdown" id="dropdown">
+            <button class="dropdown-toggle" onclick="toggleDropdown()">
+                <span id="dropdown-label">home</span>
+                <svg width="9" height="5" viewBox="0 0 9 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 0L4.5 5L9 0" fill="#111"/>
+                </svg>
+            </button>
+            <ul class="dropdown-menu" id="dropdown-menu">
+                <li onclick="selectFilter('home', 'home')">home</li>
+                <li onclick="selectFilter('painting', 'paintings')">paintings</li>
+                <li onclick="selectFilter('writing', 'writing')">writing</li>
+                <li onclick="selectFilter('cha', 'cha')">cha</li>
+                <li onclick="selectFilter('contact', 'contact')">contact</li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="feed"></main>
+
+    <div id="walker" aria-hidden="true">
+        <img src="assets/colin-and-cat.png" alt="">
+    </div>
+
+    <div id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <script src="posts.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

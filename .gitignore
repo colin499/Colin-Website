@@ -1,0 +1,8 @@
+.DS_Store
+.Rhistory
+
+# iPhone originals: they carry GPS location, and the site uses the converted .jpeg copies
+*.heic
+*.HEIC
+*.heif
+*.HEIF

@@ -1,0 +1,389 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --tan: #f0e2c8;
+    --black: #111;
+    --muted: rgba(0, 0, 0, 0.4);
+    --border: 2px solid #111;
+}
+
+body {
+    background-color: var(--tan);
+    color: var(--black);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* Header */
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 1.5rem 2rem;
+    border-bottom: var(--border);
+    position: sticky;
+    top: 0;
+    background-color: var(--tan);
+    z-index: 10;
+}
+
+.site-title {
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--black);
+    letter-spacing: 0.02em;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: transparent;
+    border: none;
+    border-bottom: var(--border);
+    padding: 0.1rem 0;
+    cursor: pointer;
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-toggle:focus {
+    outline: none;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background-color: var(--tan);
+    border: var(--border);
+    list-style: none;
+    min-width: 100%;
+    z-index: 100;
+}
+
+.dropdown-menu li {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dropdown-menu li:hover {
+    background-color: var(--black);
+    color: var(--tan);
+}
+
+.dropdown.open .dropdown-menu {
+    display: block;
+}
+
+/* Feed */
+
+#feed {
+    width: 100%;
+}
+
+.post {
+    padding: 2.5rem 2rem;
+    border-bottom: var(--border);
+}
+
+.post-writing {
+    padding-left: 2rem;
+    padding-right: 50%;
+}
+
+.post-painting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Size of the photos in paintings and cha. */
+.post-painting .post-image {
+    width: 800px;
+}
+
+.post-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.03em;
+}
+
+.post-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 1.2rem;
+}
+
+.post-body {
+    max-width: 60ch;
+    color: var(--black);
+    white-space: pre-wrap;
+}
+
+.post-body p + p {
+    margin-top: 1em;
+}
+
+.post-body img {
+    display: block;
+    max-width: 100%;
+    width: 480px;
+    margin-top: 1.2rem;
+    margin-bottom: 1.2rem;
+}
+
+.post-image {
+    display: block;
+    max-width: 100%;
+    width: 480px;
+    margin-top: 0.5rem;
+    border: var(--border);
+    cursor: pointer;
+}
+
+.post-caption {
+    margin-top: 0.6rem;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+a {
+    color: var(--black);
+    text-decoration: none;
+    border-bottom: var(--border);
+}
+
+a:hover {
+    opacity: 0.6;
+}
+
+/* Lightbox */
+
+#lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+#lightbox.open {
+    display: flex;
+}
+
+#lightbox-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border: 2px solid #fff;
+}
+
+/* Empty state */
+
+.empty {
+    padding: 4rem 2rem;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.post-body h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+}
+
+.post-body p + h3 {
+    margin-top: 2em;
+}
+
+/* Home page: the paintings run the full width of the screen and stack
+   top to bottom, so you scroll down over them. */
+
+:root {
+    --panel-h: max(420px, calc(100svh - var(--header-h, 77px)));
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100svh;
+}
+
+#feed {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.home {
+    flex: 1;
+    position: relative;
+    background-color: #8a6f2c;
+}
+
+/* No top bar on the home page: the title and menu sit on top of the
+   paintings, which start at the very top of the screen. */
+body.is-home header {
+    position: fixed;
+    left: 0;
+    right: 0;
+    background-color: transparent;
+    border-bottom: none;
+    pointer-events: none;
+}
+
+body.is-home .site-title,
+body.is-home .dropdown {
+    pointer-events: auto;
+}
+
+body.is-home .site-title,
+body.is-home .dropdown-toggle {
+    background-color: var(--tan);
+    border: var(--border);
+    padding: 0.3rem 0.7rem;
+}
+
+/* Each painting is as wide as the screen and as tall as it needs to be,
+   so nothing is cropped: you see all of it by scrolling down. */
+.home-painting {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.home-painting + .home-painting {
+    border-top: var(--border);
+}
+
+/* Holds the card in place on screen while the paintings scroll behind it. */
+.home-overlay {
+    position: sticky;
+    top: var(--header-h, 77px);
+    height: var(--panel-h);
+    margin-bottom: calc(-1 * var(--panel-h));
+    z-index: 1;
+    pointer-events: none;
+}
+
+.home-card {
+    position: absolute;
+    left: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 300px;
+    max-width: calc(100% - 4rem);
+    padding: 1.5rem 1.75rem 1.75rem;
+    background-color: var(--tan);
+    border: var(--border);
+    pointer-events: auto;
+}
+
+.home-title {
+    font-size: 1.6rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    margin-bottom: 1rem;
+}
+
+.home-text {
+    margin-bottom: 1.5rem;
+}
+
+.home-links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.25rem;
+}
+
+@media (max-width: 700px) {
+    .post-writing { padding-right: 2rem; }
+    .home-card {
+        top: auto;
+        bottom: 1rem;
+        left: 1rem;
+        transform: none;
+        width: auto;
+        right: 1rem;
+        max-width: none;
+        padding: 1rem 1.25rem 1.25rem;
+    }
+    .home-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .home-text { margin-bottom: 0.9rem; }
+}
+
+/* Bouncing walker along the bottom of the screen */
+
+#walker {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100px;
+    z-index: 500;
+    pointer-events: none;
+    animation: walker-across 18s linear infinite alternate;
+}
+
+#walker img {
+    display: block;
+    width: 100%;
+    height: auto;
+    animation: walker-bounce 0.45s cubic-bezier(0.1, 0.9, 0.3, 1) infinite alternate;
+    transform-origin: bottom center;
+}
+
+@keyframes walker-across {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(100vw - 100px)); }
+}
+
+@keyframes walker-bounce {
+    from { transform: translateY(0) scaleY(1); }
+    to   { transform: translateY(-36px) scaleY(1.03); }
+}
+
+/* Attack mode: walking pauses, it pounces at the cursor */
+
+#walker.attacking {
+    animation-play-state: paused;
+}
+
+#walker.attacking img {
+    animation: walker-pounce 0.4s cubic-bezier(0.2, 1.2, 0.3, 1) infinite;
+}
+
+@keyframes walker-pounce {
+    0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+    35%  { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)) scale(1.12); }
+    55%  { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)) scale(1.08); }
+    100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #walker, #walker img { animation: none; }
+}
