@@ -473,13 +473,11 @@ body.game-playing .home-card {
     pointer-events: none;
 }
 
-/* ...and so does the bouncing walker, so it can't cover the game. */
-#walker {
-    transition: opacity 0.3s;
-}
-
-body.game-playing #walker {
-    opacity: 0;
+/* Empty space at the very bottom of the home page, tall enough for the bouncing
+   walker to stand in, so it is below the final level instead of on top of it. */
+.home-floor {
+    height: 250px;
+    background-color: #0d0612;      /* the same black as the ground in the game */
 }
 
 /* Holds the card in place on screen while the paintings scroll behind it. */
@@ -570,6 +568,7 @@ body.game-playing #walker {
         padding: 0;
     }
     .home-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .home-floor { height: 170px; }
     .home-text { margin-bottom: 1rem; }
 
     /* Cha: smaller titles so they don't cover the photo */

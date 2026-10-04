@@ -190,6 +190,7 @@ function render() {
                 ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${i ? ' loading="lazy"' : ''}>`)
                     .join('<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>')}
                 <div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>
+                <div class="home-floor"></div>
             </section>
         `;
         HomeGames.mount(feed);
@@ -283,7 +284,7 @@ document.addEventListener('touchend', () => { mouse = null; });
 document.addEventListener('touchcancel', () => { mouse = null; });
 
 function checkWalker() {
-    // no pouncing (or cat noises) while the game is being played: the walker is hidden then
+    // no pouncing (or cat noises) while the game is being played
     const hidden = document.body.classList.contains('game-playing');
     if (!walker || !mouse || hidden) { if (attacking) stopAttack(); return; }
     const r = walker.getBoundingClientRect();
