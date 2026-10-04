@@ -283,7 +283,9 @@ document.addEventListener('touchend', () => { mouse = null; });
 document.addEventListener('touchcancel', () => { mouse = null; });
 
 function checkWalker() {
-    if (!walker || !mouse) { if (attacking) stopAttack(); return; }
+    // no pouncing (or cat noises) while the game is being played: the walker is hidden then
+    const hidden = document.body.classList.contains('game-playing');
+    if (!walker || !mouse || hidden) { if (attacking) stopAttack(); return; }
     const r = walker.getBoundingClientRect();
     const cx = r.left + r.width / 2;
     const cy = r.top + r.height / 2;

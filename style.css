@@ -473,6 +473,15 @@ body.game-playing .home-card {
     pointer-events: none;
 }
 
+/* ...and so does the bouncing walker, so it can't cover the game. */
+#walker {
+    transition: opacity 0.3s;
+}
+
+body.game-playing #walker {
+    opacity: 0;
+}
+
 /* Holds the card in place on screen while the paintings scroll behind it. */
 .home-overlay {
     position: sticky;
