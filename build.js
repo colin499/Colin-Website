@@ -42,7 +42,7 @@ function fileDate(file) {
 }
 
 function titleFromFilename(file) {
-    return path.basename(file, path.extname(file)).replace(/[-_]+/g, ' ').trim();
+    return path.basename(file, path.extname(file)).replace(/[-_]+/g, ' ').trim().normalize('NFC');
 }
 
 // Reads the block between the two "---" lines at the top of a file.
@@ -99,8 +99,10 @@ function markdownToHtml(md) {
         .join('');
 }
 
+// The Mac stores accented letters (like the í in "Mía") differently from the
+// web server, so file names are converted to the form the server expects.
 function relativeUrl(file) {
-    return path.relative(ROOT, file).split(path.sep).join('/');
+    return path.relative(ROOT, file).split(path.sep).join('/').normalize('NFC');
 }
 
 // iPhone photos (.heic) can't be shown in a browser. Convert them to .jpeg

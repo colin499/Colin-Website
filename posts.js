@@ -94,8 +94,8 @@ const posts = [
     {
         "type": "cha",
         "date": "2026-10-04",
-        "title": "Momo Mía",
-        "image": "assets/web/cha/Momo Mía.jpg",
+        "title": "Momo Mía",
+        "image": "assets/web/cha/Momo Mía.jpg",
         "caption": ""
     }
 ];
