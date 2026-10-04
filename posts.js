@@ -1,7 +1,7 @@
 // GENERATED FILE — do not edit by hand.
 // Edit the files in the content/ folder, then double-click "Build Site.command".
 const home = {
-    "html": "<p>Brain Foood is where I put paintings, writing, and photos of Cha.</p><p>Beware of cat.</p>"
+    "html": "<p>A place for paintings, writings and photos of Cha all neatly packaged in one place</p><p>Beware of cat.</p>"
 };
 
 const backgrounds = [
