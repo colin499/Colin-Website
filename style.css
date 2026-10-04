@@ -449,7 +449,7 @@ body.is-home .dropdown-toggle,
 
 /* The final level, below the last painting, is taller and always open. */
 .home-boss {
-    --game-h: clamp(240px, 52vh, 440px);
+    --game-h: min(clamp(240px, 52vh, 440px), 80vw);
     height: var(--game-h);
     border-bottom: none;
 }

@@ -41,6 +41,7 @@ const HomeGames = (() => {
     const SILHOUETTE = '#0d0612';   // player, obstacles and ground
     const FAR = '#2a0e3f';          // scenery in the distance
     const TEXT = '#ffd9a8';
+    const RIM = '#ffa659';          // the glowing edge around obstacles
     const WHITE = '#f6f1e7';        // the white blobs from the paintings
     const WHITE_SHADE = '#8fbbe6';  // their pale blue underside
     const PINK = '#ef9a86';         // the big pink blob
@@ -54,6 +55,10 @@ const HomeGames = (() => {
     // The game is drawn on a virtual screen 200 units tall; the width follows the page.
     const VIEW_H = 200;
     const GROUND = 168;
+    // On a narrow screen (a phone) the scene is shrunk so there is always at least
+    // this much room from side to side; the space left over on top becomes more sky.
+    const MIN_WIDTH = 360;
+    const MIN_WIDTH_FINAL = 440;
 
     const TOUCH = window.matchMedia('(pointer: coarse)').matches;   // phones and tablets
 
@@ -81,7 +86,7 @@ const HomeGames = (() => {
         const g = {
             strip, canvas, index, boss,
             state: 'idle',          // idle | running | paused | dead | clear
-            width: 300, scale: 1,
+            width: 300, scale: 1, sky: 0,   // sky: extra room above the scene, in units
             scroll: 0, phase: 0, time: 0,
             x: 0, y: GROUND, vy: 0,
             left: false, right: false,   // arrow keys being held
@@ -105,10 +110,11 @@ const HomeGames = (() => {
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
             canvas.width = Math.round(cssW * dpr);
             canvas.height = Math.round(cssH * dpr);
-            g.scale = cssH / VIEW_H;
+            g.scale = Math.min(cssH / VIEW_H, cssW / (boss ? MIN_WIDTH_FINAL : MIN_WIDTH));
             g.width = cssW / g.scale;
+            g.sky = cssH / g.scale - VIEW_H;
             g.x = g.state === 'running' || g.state === 'paused' ? Math.min(g.x, maxX()) : startX();
-            ctx.setTransform(dpr * g.scale, 0, 0, dpr * g.scale, 0, 0);
+            ctx.setTransform(dpr * g.scale, 0, 0, dpr * g.scale, 0, dpr * g.scale * g.sky);
             draw();
         }
 
@@ -321,17 +327,17 @@ const HomeGames = (() => {
         // ---------- drawing ----------
 
         function drawSky() {
-            const grad = ctx.createLinearGradient(0, 0, 0, GROUND);
+            const grad = ctx.createLinearGradient(0, -g.sky, 0, GROUND);
             grad.addColorStop(0, sky[0]);
             grad.addColorStop(0.6, sky[1]);
             grad.addColorStop(1, sky[2]);
             ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, g.width, VIEW_H);
+            ctx.fillRect(0, -g.sky, g.width, VIEW_H + g.sky);
 
             if (boss || index % LEVELS.length >= 2) {   // stars come out as the sun goes down
                 ctx.fillStyle = 'rgba(255, 230, 200, 0.7)';
                 for (let i = 0; i < 40; i++) {
-                    const x = hash(i, 9 + index) * g.width, y = hash(i, 5 + index) * GROUND * 0.5;
+                    const x = hash(i, 9 + index) * g.width, y = hash(i, 5 + index) * (GROUND * 0.5 + g.sky) - g.sky;
                     ctx.fillRect(x, y, 1.2, 1.2);
                 }
             }
@@ -341,7 +347,7 @@ const HomeGames = (() => {
             glow.addColorStop(0, 'rgba(255, 170, 70, 0.75)');
             glow.addColorStop(1, 'rgba(255, 140, 50, 0)');
             ctx.fillStyle = glow;
-            ctx.fillRect(0, 0, g.width, GROUND);
+            ctx.fillRect(0, -g.sky, g.width, GROUND + g.sky);
             const sun = ctx.createLinearGradient(0, sy - 34, 0, sy + 34);
             sun.addColorStop(0, '#ffd98a');
             sun.addColorStop(1, '#ff6a1f');
@@ -516,7 +522,13 @@ const HomeGames = (() => {
                 ctx.roundRect(o.x + 13, b - o.h * 0.85, 5, o.h * 0.35, 2.5);
                 ctx.rect(o.x + 10, b - o.h * 0.55, 8, 4);
             }
+            // a warm edge of sunset light, so the shape stands out from the dark behind it
+            ctx.strokeStyle = RIM;
+            ctx.lineWidth = 2.4;
+            ctx.lineJoin = 'round';
+            ctx.stroke();
             ctx.fill();
+            ctx.fillRect(o.x - 4, b, o.w + 8, 2);     // tidy the edge where it meets the ground
         }
 
         // The giant pink blob from the paintings: an egg of pink with a thick dark
@@ -752,17 +764,18 @@ const HomeGames = (() => {
             drawRunner(g.x, g.y);
 
             const small = g.width < 420;
+            const hud = 20 - g.sky;      // the score sits at the very top of the strip
             if (boss) {
                 // how much blob is left
                 const bw = small ? 80 : 120, bx0 = g.width - 12 - bw;
-                label(level.name, bx0 - 8, 20, small ? 10 : 11, 'right');
+                label(level.name, bx0 - 8, hud, small ? 10 : 11, 'right');
                 ctx.fillStyle = PINK;
-                ctx.fillRect(bx0, 13, bw * Math.max(0, g.hp) / BOSS.hits, 7);
+                ctx.fillRect(bx0, hud - 7, bw * Math.max(0, g.hp) / BOSS.hits, 7);
                 ctx.strokeStyle = TEXT;
                 ctx.lineWidth = 1;
-                ctx.strokeRect(bx0, 13, bw, 7);
+                ctx.strokeRect(bx0, hud - 7, bw, 7);
             } else {
-                label(`${level.name}  ${g.passed}/${level.goal}`, g.width - 12, 20, small ? 10 : 11, 'right');
+                label(`${level.name}  ${g.passed}/${level.goal}`, g.width - 12, hud, small ? 10 : 11, 'right');
             }
 
             const cx = boss ? Math.min(g.width / 2, bossX() - bossR() - 60) : g.width / 2;
