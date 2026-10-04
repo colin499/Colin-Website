@@ -122,14 +122,13 @@ function renderPost(post) {
     return '';
 }
 
-// Sounds for the four buttons on the home page. "start" skips the silence
-// at the beginning of each recording so the sound lands right on the click.
+// Sounds for the four buttons on the home page.
 const BUTTON_SOUND_VOLUME = 0.8;   // 0 = silent, 1 = full volume
 const BUTTON_SOUNDS = {
-    paintings: { file: 'assets/sounds/Bleep.m4a', start: 0.95 },
-    writing:   { file: 'assets/sounds/Blip.m4a',  start: 0.55 },
-    cha:       { file: 'assets/sounds/Bllam.m4a', start: 0.45 },
-    contact:   { file: 'assets/sounds/Bloop.m4a', start: 0.75 }
+    paintings: { file: 'assets/sounds/Bleep.wav' },
+    writing:   { file: 'assets/sounds/Blip.wav' },
+    cha:       { file: 'assets/sounds/Bllam.wav' },
+    contact:   { file: 'assets/sounds/Bloop.wav' }
 };
 
 for (const sound of Object.values(BUTTON_SOUNDS)) {
@@ -141,7 +140,7 @@ for (const sound of Object.values(BUTTON_SOUNDS)) {
 function playButtonSound(name) {
     const sound = BUTTON_SOUNDS[name];
     if (!sound) return;
-    sound.audio.currentTime = sound.start;
+    sound.audio.currentTime = 0;
     sound.audio.play().catch(() => {});
 }
 
