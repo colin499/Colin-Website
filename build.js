@@ -384,6 +384,24 @@ fs.writeFileSync(OUT_FILE,
     'const backgrounds = ' + JSON.stringify(backgrounds, null, 4) + ';\n\n' +
     'const posts = ' + JSON.stringify(posts, null, 4) + ';\n');
 
+// ---------- make browsers pick up changes straight away ----------
+
+// Phones hang on to old copies of the site's files. Each file's address in
+// index.html gets a short code that changes whenever the file changes, so a
+// browser never mixes a new file with a stale one.
+const INDEX_FILE = path.join(ROOT, 'index.html');
+if (fs.existsSync(INDEX_FILE)) {
+    const crypto = require('crypto');
+    const before = fs.readFileSync(INDEX_FILE, 'utf8');
+    const after = before.replace(/((?:href|src)=")(style\.css|posts\.js|main\.js|game\.js)(?:\?v=[^"]*)?(")/g, (all, start, file, end) => {
+        const full = path.join(ROOT, file);
+        if (!fs.existsSync(full)) return all;
+        const stamp = crypto.createHash('md5').update(fs.readFileSync(full)).digest('hex').slice(0, 8);
+        return `${start}${file}?v=${stamp}${end}`;
+    });
+    if (after !== before) fs.writeFileSync(INDEX_FILE, after);
+}
+
 const counts = {};
 posts.forEach(p => { counts[p.type] = (counts[p.type] || 0) + 1; });
 console.log('Built posts.js: ' + Object.entries(counts).map(([t, n]) => `${n} ${t}`).join(', ') + `, ${backgrounds.length} background.`);
