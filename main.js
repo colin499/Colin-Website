@@ -99,7 +99,7 @@ function renderPost(post) {
     if (post.type === 'cha' && post.image) {
         return `
             <article class="post-full">
-                <img class="post-full-image" src="${post.image}" alt="${post.title}">
+                <img class="post-full-image" src="${post.image}" alt="${post.title}" loading="lazy">
                 <div class="post-full-text">
                     <h2 class="post-title">${post.title}</h2>
                     ${post.caption ? `<div class="post-full-caption">${post.caption}</div>` : ''}
@@ -113,7 +113,7 @@ function renderPost(post) {
             <article class="post post-painting post-${post.type}">
                 <div class="post-meta">${meta}</div>
                 <h2 class="post-title">${post.title}</h2>
-                <img class="post-image" src="${post.image}" alt="${post.title}" onclick="openLightbox(this.src)">
+                <img class="post-image" src="${post.image}" alt="${post.title}" loading="lazy" onclick="openLightbox(this.src)">
                 ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
             </article>
         `;
@@ -223,6 +223,16 @@ let attacking = false;
 
 document.addEventListener('mousemove', e => { mouse = { x: e.clientX, y: e.clientY }; });
 document.addEventListener('mouseleave', () => { mouse = null; });
+
+// On a phone there is no cursor: a finger on the screen counts instead.
+function trackTouch(e) {
+    const t = e.touches[0];
+    if (t) mouse = { x: t.clientX, y: t.clientY };
+}
+document.addEventListener('touchstart', trackTouch, { passive: true });
+document.addEventListener('touchmove', trackTouch, { passive: true });
+document.addEventListener('touchend', () => { mouse = null; });
+document.addEventListener('touchcancel', () => { mouse = null; });
 
 function checkWalker() {
     if (!walker || !mouse) { if (attacking) stopAttack(); return; }

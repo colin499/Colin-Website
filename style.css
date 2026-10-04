@@ -397,19 +397,33 @@ body.is-home .dropdown-toggle,
     box-shadow: none;
 }
 
+/* ---------- Phones ----------
+   Everything in here only applies on narrow screens; the desktop site is untouched. */
 @media (max-width: 700px) {
+    /* A little more room for content */
+    header { padding: 1rem 1.25rem; }
+    .post { padding: 2rem 1.25rem; }
+
+    /* Menu that is easy to hit with a thumb */
+    .dropdown-toggle { font-size: 15px; padding: 0.4rem 0; }
+    .dropdown-menu li { font-size: 16px; padding: 0.7rem 1.1rem; }
+
+    /* Home: text and buttons sit near the top, clear of the walker at the bottom */
     .home-card {
-        top: auto;
-        bottom: 1rem;
-        left: 1rem;
+        top: 4.5rem;
+        left: 1.25rem;
+        right: 1.25rem;
         transform: none;
         width: auto;
-        right: 1rem;
         max-width: none;
-        padding: 1rem 1.25rem 1.25rem;
+        padding: 0;
     }
     .home-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
-    .home-text { margin-bottom: 0.9rem; }
+    .home-text { margin-bottom: 1rem; }
+
+    /* Cha: smaller titles so they don't cover the photo */
+    .post-full-text { top: 0.9rem; left: 1.25rem; right: 1.25rem; }
+    .post-full-text .post-title { font-size: 1rem; }
 }
 
 /* Bouncing walker along the bottom of the screen */
@@ -418,7 +432,8 @@ body.is-home .dropdown-toggle,
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100px;
+    --walker-w: 100px;
+    width: var(--walker-w);
     z-index: 500;
     pointer-events: none;
     animation: walker-across 18s linear infinite alternate;
@@ -434,7 +449,7 @@ body.is-home .dropdown-toggle,
 
 @keyframes walker-across {
     from { transform: translateX(0); }
-    to   { transform: translateX(calc(100vw - 100px)); }
+    to   { transform: translateX(calc(100vw - var(--walker-w))); }
 }
 
 @keyframes walker-bounce {
@@ -470,6 +485,15 @@ body.is-home .dropdown-toggle,
     white-space: nowrap;
     text-shadow: 1px 1px 0 var(--paper), -1px -1px 0 var(--paper), 1px -1px 0 var(--paper), -1px 1px 0 var(--paper);
     opacity: 0;
+}
+
+/* Phones: a smaller walker with a lower bounce, so it covers less of the page */
+@media (max-width: 700px) {
+    #walker { --walker-w: 64px; }
+    @keyframes walker-bounce {
+        from { transform: translateY(0) scaleY(1); }
+        to   { transform: translateY(-22px) scaleY(1.03); }
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

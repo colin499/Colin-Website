@@ -32,70 +32,70 @@ const posts = [
         "type": "painting",
         "date": "2026-10-04",
         "title": "Jumpy",
-        "image": "content/paintings/Jumpy.jpeg",
+        "image": "assets/web/paintings/Jumpy.jpg",
         "caption": "oil on wood , 2026"
     },
     {
         "type": "painting",
         "date": "2026-10-04",
         "title": "Mr. Anderson",
-        "image": "content/paintings/Mr. Anderson.jpeg",
+        "image": "assets/web/paintings/Mr. Anderson.jpg",
         "caption": "oil on wood , 2026"
     },
     {
         "type": "painting",
         "date": "2026-04-25",
         "title": "amorph 1",
-        "image": "content/paintings/amorph_1_WIP.jpeg",
+        "image": "assets/web/paintings/amorph_1_WIP.jpg",
         "caption": "amorphous monkstery"
     },
     {
         "type": "painting",
         "date": "2026-04-28",
         "title": "amorph delta delta",
-        "image": "content/paintings/IMG_3884.jpeg",
+        "image": "assets/web/paintings/IMG_3884.jpg",
         "caption": "oil on wood"
     },
     {
         "type": "painting",
         "date": "2026-10-04",
         "title": "cornycopia",
-        "image": "content/paintings/cornycopia.jpeg",
+        "image": "assets/web/paintings/cornycopia.jpg",
         "caption": "oil on wood , 2026"
     },
     {
         "type": "painting",
         "date": "2021-04-20",
         "title": "laisse-moi partir",
-        "image": "content/paintings/IMG_0178.jpeg",
+        "image": "assets/web/paintings/IMG_0178.jpg",
         "caption": "oil on wood, 2021, Mexico"
     },
     {
         "type": "painting",
         "date": "2026-04-26",
         "title": "the pretty big apple",
-        "image": "content/paintings/IMG_0183.jpeg",
+        "image": "assets/web/paintings/IMG_0183.jpg",
         "caption": "oil on canvas 2021"
     },
     {
         "type": "cha",
         "date": "2026-10-04",
         "title": "Cha @ Erykah Badu with a french fry in her lung",
-        "image": "content/cha/Cha @ Erykah Badu with a french fry in her lung.jpeg",
+        "image": "assets/web/cha/Cha @ Erykah Badu with a french fry in her lung.jpg",
         "caption": ""
     },
     {
         "type": "cha",
         "date": "2026-10-04",
         "title": "L'artiste",
-        "image": "content/cha/L'artiste.jpeg",
+        "image": "assets/web/cha/L'artiste.jpg",
         "caption": ""
     },
     {
         "type": "cha",
         "date": "2026-10-04",
         "title": "Momo Mía",
-        "image": "content/cha/Momo Mía.jpeg",
+        "image": "assets/web/cha/Momo Mía.jpg",
         "caption": ""
     }
 ];

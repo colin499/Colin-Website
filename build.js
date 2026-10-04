@@ -122,6 +122,37 @@ function convertHeic(dir) {
 
 // ---------- image sections (paintings, cha) ----------
 
+// Phone photos are several megabytes each, which is slow to load (especially
+// on a phone). The site shows a web-sized .jpg copy kept in assets/web/.
+const WEB_OUT = path.join(ROOT, 'assets', 'web');
+const WEB_MAX_PX = 1800;
+const webCopiesInUse = new Set();
+
+function webCopy(src, label) {
+    const out = path.join(WEB_OUT, label, path.basename(src, path.extname(src)) + '.jpg');
+    if (!fs.existsSync(out) || fs.statSync(out).mtimeMs < fs.statSync(src).mtimeMs) {
+        try {
+            fs.mkdirSync(path.dirname(out), { recursive: true });
+            execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '80', '-Z', String(WEB_MAX_PX), src, '--out', out], { stdio: 'ignore' });
+            console.log(`Prepared web copy of ${path.relative(ROOT, src)}`);
+        } catch (e) {
+            return relativeUrl(src);   // couldn't shrink it, so use the original
+        }
+    }
+    webCopiesInUse.add(out);
+    return relativeUrl(out);
+}
+
+// Remove web copies of photos that have been deleted or renamed.
+function cleanWebCopies(dir) {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) cleanWebCopies(full);
+        else if (!entry.name.startsWith('.') && !webCopiesInUse.has(full)) fs.unlinkSync(full);
+    }
+}
+
 function buildImageSection(type, dir) {
     const label = path.basename(dir);
     convertHeic(dir);
@@ -130,6 +161,8 @@ function buildImageSection(type, dir) {
     const images = files.filter(isImage);
     const usedImages = new Set();
     const posts = [];
+
+cleanWebCopies(WEB_OUT);
 
     for (const note of notes) {
         const full = path.join(dir, note);
@@ -152,7 +185,7 @@ function buildImageSection(type, dir) {
             type,
             date: meta.date || fileDate(path.join(dir, image)),
             title: meta.title || titleFromFilename(note),
-            image: relativeUrl(path.join(dir, image)),
+            image: webCopy(path.join(dir, image), label),
             caption: meta.caption || body || ''
         });
     }
@@ -165,7 +198,7 @@ function buildImageSection(type, dir) {
             type,
             date: fileDate(full),
             title: titleFromFilename(image),
-            image: relativeUrl(full),
+            image: webCopy(full, label),
             caption: ''
         });
         warnings.push(`content/${label}/${image} has no note — shown with title "${titleFromFilename(image)}". Add a .md file to give it a real title and caption.`);
