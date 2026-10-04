@@ -176,6 +176,19 @@ a:hover {
     opacity: 0.6;
 }
 
+.button {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.4rem 1rem;
+    border: var(--border);
+}
+
+.button:hover {
+    background-color: var(--black);
+    color: var(--tan);
+    opacity: 1;
+}
+
 /* Lightbox */
 
 #lightbox {
@@ -382,6 +395,19 @@ body.is-home .dropdown-toggle {
     35%  { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)) scale(1.12); }
     55%  { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)) scale(1.08); }
     100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+}
+
+/* Distress marks that fly off the cursor during an attack */
+
+.distress {
+    position: fixed;
+    z-index: 600;
+    pointer-events: none;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    text-shadow: 1px 1px 0 var(--tan), -1px -1px 0 var(--tan), 1px -1px 0 var(--tan), -1px 1px 0 var(--tan);
+    opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

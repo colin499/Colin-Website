@@ -127,6 +127,7 @@ function render() {
         feed.innerHTML = `
             <div class="post post-writing">
                 <a href="mailto:colinlysik@gmail.com">colinlysik@gmail.com</a>
+                <div><a class="button" href="https://colinlysik.substack.com/" target="_blank" rel="noopener">substack</a></div>
             </div>
         `;
         return;
@@ -184,8 +185,46 @@ function checkWalker() {
         walkerImg.style.setProperty('--dy', (dy / dist * reach).toFixed(1) + 'px');
         walkerImg.style.setProperty('--rot', (dx >= 0 ? 12 : -12) + 'deg');
         if (!attacking) { attacking = true; walker.classList.add('attacking'); }
+        spawnDistress();
     } else if (attacking) {
         stopAttack();
+    }
+}
+
+// Little distress marks that fly off the cursor while it's being attacked.
+const DISTRESS_MARKS = ['!', '!!', '✶', '✸', '⚡', '#', '@', '*', '?!'];
+const DISTRESS_EVERY = 110;   // ms between marks (smaller = more frantic)
+const DISTRESS_COLORS = ['#111', '#d1352b'];
+const calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let lastDistress = 0;
+
+function spawnDistress() {
+    const now = performance.now();
+    if (calmMotion.matches || now - lastDistress < DISTRESS_EVERY) return;
+    lastDistress = now;
+
+    for (let i = 0; i < 2; i++) {
+        const mark = document.createElement('span');
+        mark.className = 'distress';
+        mark.textContent = DISTRESS_MARKS[Math.floor(Math.random() * DISTRESS_MARKS.length)];
+        mark.style.left = mouse.x + 'px';
+        mark.style.top = mouse.y + 'px';
+        mark.style.color = DISTRESS_COLORS[Math.floor(Math.random() * DISTRESS_COLORS.length)];
+        mark.style.fontSize = (14 + Math.random() * 14).toFixed(0) + 'px';
+        document.body.appendChild(mark);
+
+        // Fly outward in a random direction, leaning upward, then fade.
+        const angle = Math.random() * Math.PI * 2;
+        const far = 45 + Math.random() * 55;
+        const x = Math.cos(angle) * far;
+        const y = Math.sin(angle) * far - 25;
+        const spin = (Math.random() * 120 - 60).toFixed(0);
+        mark.animate([
+            { transform: 'translate(-50%, -50%) scale(0.4)', opacity: 1 },
+            { transform: `translate(calc(-50% + ${x * 0.7}px), calc(-50% + ${y * 0.7}px)) scale(1.2) rotate(${spin * 0.6}deg)`, opacity: 1, offset: 0.5 },
+            { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(0.9) rotate(${spin}deg)`, opacity: 0 }
+        ], { duration: 550 + Math.random() * 250, easing: 'cubic-bezier(0.1, 0.7, 0.3, 1)' })
+            .onfinish = () => mark.remove();
     }
 }
 
