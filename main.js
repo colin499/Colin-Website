@@ -10,7 +10,15 @@ function toggleDropdown() {
 // reloading stays on the same section and the back button works.
 const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', cha: 'cha', contact: 'contact' };
 
-function showSection(value, label) {
+// On the writing page: which piece is open (null = the grid of squares).
+let currentPiece = null;
+
+function pieceSlug(post) {
+    return post.title.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled';
+}
+
+function showSection(value, label, piece) {
+    currentPiece = value === 'writing' && piece ? piece : null;
     currentFilter = value;
     document.getElementById('dropdown-label').textContent = label;
     document.getElementById('dropdown').classList.remove('open');
@@ -18,15 +26,22 @@ function showSection(value, label) {
 }
 
 function showSectionFromAddress() {
-    const label = decodeURIComponent(location.hash.slice(1));
-    if (SECTIONS[label]) showSection(SECTIONS[label], label);
+    const [label, piece] = decodeURIComponent(location.hash.slice(1)).split('/');
+    if (SECTIONS[label]) showSection(SECTIONS[label], label, piece);
     else showSection('home', 'home');
 }
 
 function selectFilter(value, label) {
     const address = value === 'home' ? location.pathname + location.search : '#' + label;
-    if (value !== currentFilter) history.pushState(null, '', address);
+    if (value !== currentFilter || currentPiece) history.pushState(null, '', address);
     showSection(value, label);
+    window.scrollTo(0, 0);
+}
+
+// Open one piece of writing from the grid.
+function openPiece(slug) {
+    history.pushState(null, '', '#writing/' + slug);
+    showSection('writing', 'writing', slug);
     window.scrollTo(0, 0);
 }
 
@@ -126,9 +141,9 @@ function renderPost(post) {
 const BUTTON_SOUND_VOLUME = 0.8;   // 0 = silent, 1 = full volume
 const BUTTON_SOUNDS = {
     paintings: { file: 'assets/sounds/Bleep.wav' },
-    writing:   { file: 'assets/sounds/Blip.wav' },
+    writing:   { file: 'assets/sounds/Bloop.wav' },
     cha:       { file: 'assets/sounds/Bllam.wav' },
-    contact:   { file: 'assets/sounds/Bloop.wav' }
+    contact:   { file: 'assets/sounds/Blip.wav' }
 };
 
 for (const sound of Object.values(BUTTON_SOUNDS)) {
@@ -150,6 +165,7 @@ function render() {
     // On the home page the top bar goes away: the title and menu float over the paintings.
     document.body.classList.toggle('is-home', currentFilter === 'home');
     setHeaderHeight();
+    HomeGames.unmount();   // the runner game only lives on the home page
 
     if (currentFilter === 'home') {
         // One full-width painting per photo in content/background/, stacked
@@ -171,9 +187,12 @@ function render() {
                     </ul>
                 </div>
                 </div>
-                ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${i ? ' loading="lazy"' : ''}>`).join('')}
+                ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${i ? ' loading="lazy"' : ''}>`)
+                    .join('<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>')}
+                <div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>
             </section>
         `;
+        HomeGames.mount(feed);
         return;
     }
 
@@ -193,6 +212,35 @@ function render() {
 
     if (sorted.length === 0) {
         feed.innerHTML = '<div class="empty">nothing here yet.</div>';
+        return;
+    }
+
+    // Writing: a grid of squares, one per piece. Clicking a square opens that piece.
+    if (currentFilter === 'writing') {
+        const piece = currentPiece && sorted.find(p => pieceSlug(p) === currentPiece);
+        if (piece) {
+            feed.innerHTML = `
+                <div class="piece-back"><a href="#writing" onclick="selectFilter('writing', 'writing'); return false;">← all writing</a></div>
+                ${renderPost(piece)}
+            `;
+            return;
+        }
+        feed.innerHTML = `
+            <div class="tiles">
+                ${sorted.map(p => {
+                    // the first photo in the piece becomes the picture on its square
+                    const photo = ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
+                    return `
+                    <a class="tile${photo ? ' tile-photo' : ''}" href="#writing/${pieceSlug(p)}" onclick="openPiece('${pieceSlug(p)}'); return false;">
+                        ${photo ? `<img class="tile-image" src="${photo}" alt="" loading="lazy">` : ''}
+                        <span class="tile-text">
+                            <span class="tile-title">${p.title}</span>
+                            <span class="tile-date">${formatDate(p.date)}</span>
+                        </span>
+                    </a>
+                `; }).join('')}
+            </div>
+        `;
         return;
     }
 
