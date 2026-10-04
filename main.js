@@ -6,13 +6,31 @@ function toggleDropdown() {
     document.getElementById('dropdown').classList.toggle('open');
 }
 
-function selectFilter(value, label) {
+// The section being viewed is kept in the address (index.html#paintings), so
+// reloading stays on the same section and the back button works.
+const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', cha: 'cha', contact: 'contact' };
+
+function showSection(value, label) {
     currentFilter = value;
     document.getElementById('dropdown-label').textContent = label;
     document.getElementById('dropdown').classList.remove('open');
     render();
+}
+
+function showSectionFromAddress() {
+    const label = decodeURIComponent(location.hash.slice(1));
+    if (SECTIONS[label]) showSection(SECTIONS[label], label);
+    else showSection('home', 'home');
+}
+
+function selectFilter(value, label) {
+    const address = value === 'home' ? location.pathname + location.search : '#' + label;
+    if (value !== currentFilter) history.pushState(null, '', address);
+    showSection(value, label);
     window.scrollTo(0, 0);
 }
+
+window.addEventListener('popstate', showSectionFromAddress);
 
 document.addEventListener('click', function (e) {
     const dropdown = document.getElementById('dropdown');
@@ -72,6 +90,20 @@ function renderPost(post) {
                 <div class="post-meta">${meta}</div>
                 <h2 class="post-title">${post.title}</h2>
                 <div class="post-body">${bodyHtml}</div>
+            </article>
+        `;
+    }
+
+    // Cha photos run the full width of the screen, like the home page,
+    // with the title sitting on top of the photo.
+    if (post.type === 'cha' && post.image) {
+        return `
+            <article class="post-full">
+                <img class="post-full-image" src="${post.image}" alt="${post.title}">
+                <div class="post-full-text">
+                    <h2 class="post-title">${post.title}</h2>
+                    ${post.caption ? `<div class="post-full-caption">${post.caption}</div>` : ''}
+                </div>
             </article>
         `;
     }
@@ -265,7 +297,7 @@ setHeaderHeight();
 async function init() {
     const substackPosts = await fetchSubstackPosts();
     allPosts = [...posts, ...substackPosts];
-    render();
+    showSectionFromAddress();
 }
 
 init();
