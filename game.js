@@ -41,7 +41,6 @@ const HomeGames = (() => {
     const SILHOUETTE = '#0d0612';   // player, obstacles and ground
     const FAR = '#2a0e3f';          // scenery in the distance
     const TEXT = '#ffd9a8';
-    const RIM = '#ffa659';          // the glowing edge around obstacles
     const WHITE = '#f6f1e7';        // the white blobs from the paintings
     const WHITE_SHADE = '#8fbbe6';  // their pale blue underside
     const PINK = '#ef9a86';         // the big pink blob
@@ -100,9 +99,9 @@ const HomeGames = (() => {
 
         const startX = () => (boss ? Math.max(14, g.width * 0.14) : g.width > 520 ? g.width * 0.34 : g.width * 0.2);
         const bossR = () => (g.width < 360 ? 40 : 50);
-        const bossX = () => g.width - bossR() - 26;
-        const bossY = () => GROUND - bossR() * 1.5 + Math.sin(g.time * 1.6) * 4;
-        const maxX = () => (boss ? bossX() - bossR() - 34 : g.width - 30);
+        const bossX = () => g.width - bossR() - 34;
+        const bossY = () => GROUND - bossR() * 1.68 + Math.sin(g.time * 1.6) * 4;
+        const maxX = () => (boss ? bossX() - bossR() - 50 : g.width - 30);
 
         function resize() {
             const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
@@ -500,35 +499,60 @@ const HomeGames = (() => {
                 drawLiquid(o.x + r, GROUND - o.up, r, o.w - r + 6, 0, o.seed);
                 return;
             }
+            // Ground obstacles are drawn as the things they are, in their own colours,
+            // so they stand out from the dark scenery.
             const b = GROUND;
-            ctx.fillStyle = SILHOUETTE;
-            ctx.beginPath();
             if (o.type === 'rock') {
-                ctx.ellipse(o.x + o.w / 2, b, o.w / 2, o.h, 0, Math.PI, 0);
+                const cx = o.x + o.w / 2;
+                ctx.fillStyle = '#8f867d';
+                ctx.beginPath();
+                ctx.ellipse(cx, b, o.w / 2, o.h, 0, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = '#665e57';                  // shaded side
+                ctx.beginPath();
+                ctx.ellipse(cx + o.w * 0.12, b, o.w * 0.38, o.h * 0.72, 0, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = '#b5aca2';                  // light catching the top
+                ctx.beginPath();
+                ctx.ellipse(cx - o.w * 0.16, b - o.h * 0.62, o.w * 0.16, o.h * 0.13, -0.5, 0, Math.PI * 2);
+                ctx.fill();
             } else if (o.type === 'spike') {
                 const n = 3, sw = o.w / n;
                 for (let i = 0; i < n; i++) {
-                    ctx.moveTo(o.x + i * sw, b);
-                    ctx.lineTo(o.x + i * sw + sw / 2, b - o.h);
-                    ctx.lineTo(o.x + (i + 1) * sw, b);
+                    const x0 = o.x + i * sw;
+                    ctx.fillStyle = '#c4cbd3';              // steel
+                    ctx.beginPath();
+                    ctx.moveTo(x0, b); ctx.lineTo(x0 + sw / 2, b - o.h); ctx.lineTo(x0 + sw / 2, b);
+                    ctx.fill();
+                    ctx.fillStyle = '#7f8993';
+                    ctx.beginPath();
+                    ctx.moveTo(x0 + sw / 2, b); ctx.lineTo(x0 + sw / 2, b - o.h); ctx.lineTo(x0 + sw, b);
+                    ctx.fill();
                 }
             } else if (o.type === 'post') {
-                ctx.rect(o.x + 2, b - o.h, o.w - 4, o.h);
-                ctx.rect(o.x - 2, b - o.h, o.w + 4, 5);
+                ctx.fillStyle = '#a06d3d';                  // wooden post
+                ctx.fillRect(o.x + 2, b - o.h, o.w - 4, o.h);
+                ctx.fillStyle = '#7a4f29';
+                ctx.fillRect(o.x + o.w / 2, b - o.h, o.w / 2 - 2, o.h);
+                ctx.fillStyle = '#c08a52';
+                ctx.fillRect(o.x - 2, b - o.h, o.w + 4, 5);
             } else {   // cactus
-                ctx.roundRect(o.x + 6, b - o.h, 6, o.h, 3);
-                ctx.roundRect(o.x, b - o.h * 0.7, 5, o.h * 0.35, 2.5);
-                ctx.rect(o.x, b - o.h * 0.4, 8, 4);
-                ctx.roundRect(o.x + 13, b - o.h * 0.85, 5, o.h * 0.35, 2.5);
-                ctx.rect(o.x + 10, b - o.h * 0.55, 8, 4);
+                const limbs = () => {
+                    ctx.beginPath();
+                    ctx.roundRect(o.x + 6, b - o.h, 6, o.h, 3);
+                    ctx.roundRect(o.x, b - o.h * 0.7, 5, o.h * 0.35, 2.5);
+                    ctx.rect(o.x, b - o.h * 0.4, 8, 4);
+                    ctx.roundRect(o.x + 13, b - o.h * 0.85, 5, o.h * 0.35, 2.5);
+                    ctx.rect(o.x + 10, b - o.h * 0.55, 8, 4);
+                    ctx.fill();
+                };
+                ctx.fillStyle = '#4c9a55';
+                limbs();
+                ctx.fillStyle = '#2f6e3b';                  // shaded side of each limb
+                ctx.fillRect(o.x + 9.5, b - o.h + 2, 2.5, o.h - 2);
+                ctx.fillRect(o.x + 3, b - o.h * 0.7 + 2, 2, o.h * 0.35 - 2);
+                ctx.fillRect(o.x + 16, b - o.h * 0.85 + 2, 2, o.h * 0.35 - 2);
             }
-            // a warm edge of sunset light, so the shape stands out from the dark behind it
-            ctx.strokeStyle = RIM;
-            ctx.lineWidth = 2.4;
-            ctx.lineJoin = 'round';
-            ctx.stroke();
-            ctx.fill();
-            ctx.fillRect(o.x - 4, b, o.w + 8, 2);     // tidy the edge where it meets the ground
         }
 
         // The giant pink blob from the paintings: an egg of pink with a thick dark
@@ -562,24 +586,36 @@ const HomeGames = (() => {
                 ctx.closePath();
             };
 
-            // the two hanging balls, each on a loop of outline
+            // The two small balls. As in the paintings, the outline leaves the side of
+            // the egg, runs down and all the way around the ball, and comes back up to
+            // rejoin the egg lower down, so each ball hangs in a loop of outline.
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
+            const lw = R * 0.14;
             [[-1, 0.0], [1, 1.7]].forEach(([side, lag]) => {
-                const hx = bx + side * R * 0.78, hy = by + R * 0.35;
-                const ballX = bx + side * R * 1.02 + Math.sin(t * 2.1 + lag) * 3;
-                const ballY = Math.min(GROUND - 9, by + R * 1.2 + Math.cos(t * 2.1 + lag) * 2);
-                const ballR = R * 0.2;
+                const ballR = R * 0.2, ring = ballR + lw / 2;
+                const ballX = bx + side * R * 1.22 + Math.sin(t * 2.1 + lag) * 2;
+                const ballY = GROUND - ring - lw / 2 - 1 + Math.cos(t * 2.1 + lag) * 1.2;
+                const out = { x: bx + side * R * 0.84, y: by + R * 0.05 };      // leaves the egg here
+                const back = { x: bx + side * R * 0.42, y: by + R * 1.12 };     // and rejoins it here
+
                 ctx.strokeStyle = OUTLINE;
-                ctx.lineWidth = R * 0.13;
+                ctx.lineWidth = lw;
                 ctx.beginPath();
-                ctx.moveTo(hx, hy);
-                ctx.quadraticCurveTo(bx + side * R * 1.35, by + R * 0.7, ballX, ballY);
+                ctx.moveTo(out.x, out.y);
+                ctx.bezierCurveTo(out.x + side * R * 0.5, out.y + R * 0.35, ballX + side * ring, ballY - R * 0.7, ballX + side * ring, ballY);
+                // around the underside of the ball, from its outer side to its inner side
+                if (side > 0) ctx.arc(ballX, ballY, ring, 0, Math.PI, false);
+                else ctx.arc(ballX, ballY, ring, Math.PI, 0, true);
+                ctx.bezierCurveTo(ballX - side * ring, ballY - R * 0.45, back.x + side * R * 0.3, back.y + R * 0.22, back.x, back.y);
                 ctx.stroke();
+
                 ctx.fillStyle = fill;
                 ctx.beginPath();
                 ctx.arc(ballX, ballY, ballR, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.beginPath();                                // the outline closes over the top of the ball too
+                ctx.arc(ballX, ballY, ring, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 1.6;
