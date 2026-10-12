@@ -117,7 +117,7 @@ const BUTTON_SOUNDS = {
     writing:   { file: 'assets/sounds/Bloop.wav' },
     projects:  { file: 'assets/sounds/Blip.wav' },
     cha:       { file: 'assets/sounds/Bllam.wav' },
-    contact:   { file: 'assets/sounds/Bingo.m4a' }
+    contact:   { file: 'assets/sounds/Bingo.wav' }
 };
 
 for (const sound of Object.values(BUTTON_SOUNDS)) {
