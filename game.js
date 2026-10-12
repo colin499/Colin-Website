@@ -7,6 +7,9 @@
 // ground obstacles, flying white blobs, and the odd cowboy taking a shot at you.
 // Final level:    space shoots the bow, the up arrow jumps.
 // Once a level is running, the arrow keys move the runner left and right.
+//
+// The levels have to be beaten in order: each one stays locked until the one
+// before it is cleared. Beating a level shows NEXT!, which takes you to the next one.
 
 const HomeGames = (() => {
     // ---------- settings you can tweak ----------
@@ -65,6 +68,18 @@ const HomeGames = (() => {
     let listening = false;
     let checkQueued = false;
 
+    // How many levels have been beaten, in order. Level n is open once n levels are beaten.
+    // Kept for the rest of the visit, so going to another page and back doesn't lose it.
+    const PROGRESS_KEY = 'brainfood-game-progress';
+    let progress = 0;
+    try { progress = Number(sessionStorage.getItem(PROGRESS_KEY)) || 0; } catch (e) { /* storage off: progress lasts until the page is reloaded */ }
+
+    function beaten(index) {
+        if (index + 1 <= progress) return;
+        progress = index + 1;
+        try { sessionStorage.setItem(PROGRESS_KEY, String(progress)); } catch (e) { /* see above */ }
+    }
+
     const hash = (i, seed) => {
         const v = Math.sin(i * 127.1 + seed * 311.7) * 43758.5453;
         return v - Math.floor(v);
@@ -102,6 +117,7 @@ const HomeGames = (() => {
         const bossX = () => g.width - bossR() - 34;
         const bossY = () => GROUND - bossR() * 1.68 + Math.sin(g.time * 1.6) * 4;
         const maxX = () => (boss ? bossX() - bossR() - 50 : g.width - 30);
+        const locked = () => index > progress;    // the level before this one hasn't been beaten yet
 
         function resize() {
             const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
@@ -194,7 +210,7 @@ const HomeGames = (() => {
                 if (hit) { lose(); return; }
                 if (!o.counted && o.x + o.w < px) { o.counted = true; g.passed++; }
             }
-            if (g.passed >= level.goal) { g.state = 'clear'; playing(); }
+            if (g.passed >= level.goal) { g.state = 'clear'; beaten(index); playing(); }
         }
 
         // ---------- final level ----------
@@ -271,7 +287,7 @@ const HomeGames = (() => {
             if (g.dying) {
                 g.dying += dt;
                 if (!g.burst && g.dying > 1.0) { g.burst = true; explode(); }
-                if (g.dying > 3.2) { g.state = 'clear'; playing(); }
+                if (g.dying > 3.2) { g.state = 'clear'; beaten(index); playing(); }
                 return;
             }
 
@@ -817,7 +833,11 @@ const HomeGames = (() => {
             const cx = boss ? Math.min(g.width / 2, bossX() - bossR() - 60) : g.width / 2;
             const big = small ? 14 : 17, sub = small ? 9.5 : 11;
             const go = TOUCH ? 'tap' : 'press space';
-            if (g.state === 'idle') {
+            if (g.state === 'idle' && locked()) {
+                label(level.name, cx, 62, big, 'center');
+                label('locked', cx, 80, sub, 'center');
+                label(`beat ${games[progress].level.name} first ↑`, cx, 95, sub, 'center');
+            } else if (g.state === 'idle') {
                 label(level.name, cx, 62, big, 'center');
                 if (boss) {
                     label(TOUCH ? 'tap to start' : 'press space to start', cx, 80, sub, 'center');
@@ -835,7 +855,12 @@ const HomeGames = (() => {
             } else if (g.state === 'clear') {
                 const next = games[index + 1];
                 label(level.win, g.width / 2, 62, big, 'center');
-                label(boss ? 'the blob is no more' : next && next.boss ? "Don't be scared!" : 'keep scrolling for the next level ↓', g.width / 2, 80, sub, 'center');
+                if (boss || !next) {
+                    label('the blob is no more', g.width / 2, 80, sub, 'center');
+                } else {
+                    label('NEXT!', g.width / 2, 86, big, 'center');
+                    label(next.boss ? `${go} · don't be scared!` : go, g.width / 2, 102, sub, 'center');
+                }
             }
         }
 
@@ -870,12 +895,17 @@ const HomeGames = (() => {
             if (!g.frame) g.frame = requestAnimationFrame(loop);
         }
 
-        // Start, jump, try again.
+        // Start, jump, try again. On a locked level it takes you to the level you
+        // have to beat first; after a win it takes you on to the next level.
         function press() {
             if (g.state === 'running') {
                 if (g.y >= GROUND) g.vy = -JUMP;
             } else if (g.state === 'paused') {
                 run();
+            } else if (locked()) {
+                goTo(games[progress]);
+            } else if (g.state === 'clear' && !boss && games[index + 1]) {
+                goTo(games[index + 1]);
             } else {
                 reset();
                 run();
@@ -903,7 +933,7 @@ const HomeGames = (() => {
             }
         });
 
-        Object.assign(g, { resize, press, space, shoot, pause, stop, tick, draw, reset, level, speed, bossX, bossR });
+        Object.assign(g, { resize, press, space, shoot, pause, stop, tick, draw, reset, locked, level, speed, bossX, bossR });
         return g;
     }
 
@@ -912,6 +942,20 @@ const HomeGames = (() => {
     // While a level is being played, the home text steps out of the way.
     function playing() {
         document.body.classList.toggle('game-playing', games.some(g => g.state === 'running'));
+    }
+
+    // Scrolls the page so a level sits in the middle of the screen, fully open.
+    function goTo(g) {
+        if (!g) return;
+        const vh = window.innerHeight;
+        const full = g.boss ? g.strip.offsetHeight : g.canvas.offsetHeight;
+        const top = g.strip.getBoundingClientRect().top;
+        // any open gap above it draws shut on the way down, pulling it up by that much
+        let shrink = 0;
+        for (const o of games) {
+            if (o !== g && !o.boss && o.strip.getBoundingClientRect().top < top) shrink += o.strip.offsetHeight;
+        }
+        window.scrollTo({ top: window.scrollY + top - shrink - Math.max(0, (vh - full) / 2), behavior: 'smooth' });
     }
 
     // Each gap opens and closes gradually, tied to the scrolling itself: it starts
@@ -970,7 +1014,7 @@ const HomeGames = (() => {
         if (!best) {
             if (e.repeat) return;
             for (const g of games) {
-                if (!g.boss && !(g.open > 0.9)) continue;
+                if (g.locked() || (!g.boss && !(g.open > 0.9))) continue;
                 const r = g.strip.getBoundingClientRect();
                 const share = (Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0)) / r.height;
                 if (share > bestShare) { best = g; bestShare = share; }

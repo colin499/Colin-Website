@@ -11,7 +11,12 @@ const IMAGE_SECTIONS = [
     { type: 'painting', dir: path.join(ROOT, 'content', 'paintings') },
     { type: 'cha',      dir: path.join(ROOT, 'content', 'cha') }
 ];
-const WRITING_DIR = path.join(ROOT, 'content', 'writing');
+// Text folders: one .md file per piece, shown as a grid of squares that open up.
+// Photos dropped in the same folder can be used in the text or as the cover.
+const TEXT_SECTIONS = [
+    { type: 'writing',  dir: path.join(ROOT, 'content', 'writing') },
+    { type: 'projects', dir: path.join(ROOT, 'content', 'projects') }
+];
 // Photos in here become the home page background, stacked top to bottom.
 const BACKGROUND_DIR = path.join(ROOT, 'content', 'background');
 const BACKGROUND_OUT = path.join(ROOT, 'assets', 'background');
@@ -168,8 +173,6 @@ function buildImageSection(type, dir) {
     const usedImages = new Set();
     const posts = [];
 
-cleanWebCopies(WEB_OUT);
-
     for (const note of notes) {
         const full = path.join(dir, note);
         const { meta, body } = parseFrontMatter(fs.readFileSync(full, 'utf8'));
@@ -213,26 +216,47 @@ cleanWebCopies(WEB_OUT);
     return posts;
 }
 
-// ---------- writing ----------
+// ---------- text sections (writing, projects) ----------
 
-function buildWriting() {
+function buildTextSection(type, dir) {
+    const label = path.basename(dir);
+    convertHeic(dir);
+    const files = listFiles(dir);
+    const images = files.filter(isImage);
+
+    // A photo in the folder is used in the text as ![](photo.jpeg), or as the
+    // cover with "image: photo.jpeg" in the top block. It gets a web-sized copy.
+    // Anything that isn't a file in the folder (a web address, say) is left as is.
+    function photoUrl(name, file) {
+        const wanted = name.trim().normalize('NFC');
+        const match = images.find(img => img.normalize('NFC') === wanted);
+        if (match) return webCopy(path.join(dir, match), label);
+        if (!/[/:]/.test(wanted) && !fs.existsSync(path.join(dir, wanted))) {
+            warnings.push(`content/${label}/${file}: can't find photo "${name}" — add it to content/${label}/.`);
+        }
+        return name;
+    }
+
     const posts = [];
-    for (const file of listFiles(WRITING_DIR)) {
+    for (const file of files) {
         if (!isText(file)) continue;
         if (file.toLowerCase().startsWith('readme')) continue;
-        const full = path.join(WRITING_DIR, file);
+        const full = path.join(dir, file);
         const { meta, body } = parseFrontMatter(fs.readFileSync(full, 'utf8'));
         if (isDraft(meta)) continue;
-        if (!body) {
-            warnings.push(`content/writing/${file} is empty — skipped.`);
+        if (!body && !meta.image) {
+            warnings.push(`content/${label}/${file} is empty — skipped.`);
             continue;
         }
-        posts.push({
-            type: 'writing',
+        const post = {
+            type,
             date: meta.date || fileDate(full),
             title: meta.title || titleFromFilename(file),
-            contentHtml: markdownToHtml(body)
-        });
+            contentHtml: markdownToHtml(body).replace(/(<img class="post-image" src=")([^"]+)(")/g,
+                (all, start, src, end) => start + photoUrl(src, file) + end)
+        };
+        if (meta.image) post.image = photoUrl(meta.image, file);
+        posts.push(post);
     }
     return posts;
 }
@@ -458,9 +482,10 @@ async function main() {
 
     const posts = [
         ...IMAGE_SECTIONS.flatMap(s => buildImageSection(s.type, s.dir)),
-        ...buildWriting(),
+        ...TEXT_SECTIONS.flatMap(s => buildTextSection(s.type, s.dir)),
         ...await buildSubstack()
     ];
+    cleanWebCopies(WEB_OUT);    // web copies of photos that are gone or renamed
 
     for (const p of posts) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date)) {

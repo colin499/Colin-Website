@@ -90,6 +90,23 @@ from Substack each time you run it, so after publishing something new on
 Substack, double-click **Build Site.command** to get it onto the site.
 If Substack can't be reached, the posts saved from the last build are used.
 
+## Add a project
+
+Same as writing, but in `content/projects/`. Make a file ending in `.md`,
+like `treehouse.md`, with the same top block (title and date) and the
+write-up below it. It shows up under "projects" in the menu as a grid of
+squares; clicking one opens the project.
+
+Photos: drop them into `content/projects/` next to the file. To show one
+at the top of the project (and on its square), add a line to the top block:
+
+```
+image: treehouse.jpeg
+```
+
+To put photos in the text, write `![](treehouse-2.jpeg)` on its own line
+wherever you want one. iPhone photos (`.heic`) are fine.
+
 ## Hide something without deleting it
 
 Add `draft: true` to the top block of any painting note or piece of writing.
@@ -109,6 +126,7 @@ content/
   cha/              photos of Cha, same format as paintings
   writing/          one .md file per piece of writing
     original-word-docs/   the Word files these started as (not used by the site)
+  projects/         one .md file per project, plus its photos
 assets/
   substack-posts.json   your Substack posts, saved by the build (don't edit)
 Build Site.command  double-click after editing

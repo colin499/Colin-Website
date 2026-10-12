@@ -8,9 +8,12 @@ function toggleDropdown() {
 
 // The section being viewed is kept in the address (index.html#paintings), so
 // reloading stays on the same section and the back button works.
-const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', cha: 'cha', contact: 'contact' };
+const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha', contact: 'contact' };
 
-// On the writing page: which piece is open (null = the grid of squares).
+// Sections shown as a grid of squares that each open into one piece.
+const PIECE_SECTIONS = ['writing', 'projects'];
+
+// On those pages: which piece is open (null = the grid of squares).
 let currentPiece = null;
 
 function pieceSlug(post) {
@@ -18,7 +21,7 @@ function pieceSlug(post) {
 }
 
 function showSection(value, label, piece) {
-    currentPiece = value === 'writing' && piece ? piece : null;
+    currentPiece = PIECE_SECTIONS.includes(value) && piece ? piece : null;
     currentFilter = value;
     document.getElementById('dropdown-label').textContent = label;
     document.getElementById('dropdown').classList.remove('open');
@@ -38,10 +41,10 @@ function selectFilter(value, label) {
     window.scrollTo(0, 0);
 }
 
-// Open one piece of writing from the grid.
-function openPiece(slug) {
-    history.pushState(null, '', '#writing/' + slug);
-    showSection('writing', 'writing', slug);
+// Open one piece (of writing, or one project) from the grid.
+function openPiece(section, slug) {
+    history.pushState(null, '', '#' + section + '/' + slug);
+    showSection(section, section, slug);
     window.scrollTo(0, 0);
 }
 
@@ -63,16 +66,18 @@ function formatDate(dateStr) {
 function renderPost(post) {
     const meta = `${formatDate(post.date)} — ${post.type}`;
 
-    if (post.type === 'writing') {
+    if (PIECE_SECTIONS.includes(post.type)) {
         const bodyHtml = post.contentHtml || post.content
             .split('\n\n')
             .map(p => `<p>${p.trim()}</p>`)
             .join('');
+        // a project's cover photo sits above its text
+        const cover = post.image ? `<img class="post-image" src="${post.image}" alt="${post.title}">` : '';
         return `
             <article class="post post-writing">
                 <div class="post-meta">${meta}</div>
                 <h2 class="post-title">${post.title}</h2>
-                <div class="post-body">${bodyHtml}</div>
+                <div class="post-body">${cover}${bodyHtml}</div>
             </article>
         `;
     }
@@ -105,13 +110,14 @@ function renderPost(post) {
     return '';
 }
 
-// Sounds for the four buttons on the home page.
+// Sounds for the buttons on the home page.
 const BUTTON_SOUND_VOLUME = 0.8;   // 0 = silent, 1 = full volume
 const BUTTON_SOUNDS = {
     paintings: { file: 'assets/sounds/Bleep.wav' },
     writing:   { file: 'assets/sounds/Bloop.wav' },
-    cha:       { file: 'assets/sounds/Bllam.wav' },
-    contact:   { file: 'assets/sounds/Blip.wav' }
+    projects:  { file: 'assets/sounds/Bllam.wav' },
+    cha:       { file: 'assets/sounds/Blip.wav' },
+    contact:   { file: 'assets/sounds/Bingo.m4a' }
 };
 
 for (const sound of Object.values(BUTTON_SOUNDS)) {
@@ -145,11 +151,12 @@ function render() {
             <section class="home">
                 <div class="home-overlay">
                 <div class="home-card">
-                    <h1 class="home-title">Brain Foood</h1>
+                    <h1 class="home-title">Brain Food</h1>
                     <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
                     <ul class="home-links">
                         <li><a href="#" onclick="playButtonSound('paintings'); selectFilter('painting', 'paintings'); return false;">paintings</a></li>
                         <li><a href="#" onclick="playButtonSound('writing'); selectFilter('writing', 'writing'); return false;">writing</a></li>
+                        <li><a href="#" onclick="playButtonSound('projects'); selectFilter('projects', 'projects'); return false;">projects</a></li>
                         <li><a href="#" onclick="playButtonSound('cha'); selectFilter('cha', 'cha'); return false;">cha</a></li>
                         <li><a href="#" onclick="playButtonSound('contact'); selectFilter('contact', 'contact'); return false;">contact</a></li>
                     </ul>
@@ -184,12 +191,13 @@ function render() {
         return;
     }
 
-    // Writing: a grid of squares, one per piece. Clicking a square opens that piece.
-    if (currentFilter === 'writing') {
+    // Writing and projects: a grid of squares, one per piece. Clicking a square opens that piece.
+    if (PIECE_SECTIONS.includes(currentFilter)) {
+        const section = currentFilter;
         const piece = currentPiece && sorted.find(p => pieceSlug(p) === currentPiece);
         if (piece) {
             feed.innerHTML = `
-                <div class="piece-back"><a href="#writing" onclick="selectFilter('writing', 'writing'); return false;">← all writing</a></div>
+                <div class="piece-back"><a href="#${section}" onclick="selectFilter('${section}', '${section}'); return false;">← all ${section}</a></div>
                 ${renderPost(piece)}
             `;
             return;
@@ -197,10 +205,10 @@ function render() {
         feed.innerHTML = `
             <div class="tiles">
                 ${sorted.map(p => {
-                    // the first photo in the piece becomes the picture on its square
-                    const photo = ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
+                    // the cover photo, or else the first photo in the piece, becomes the picture on its square
+                    const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
                     return `
-                    <a class="tile${photo ? ' tile-photo' : ''}" href="#writing/${pieceSlug(p)}" onclick="openPiece('${pieceSlug(p)}'); return false;">
+                    <a class="tile${photo ? ' tile-photo' : ''}" href="#${section}/${pieceSlug(p)}" onclick="openPiece('${section}', '${pieceSlug(p)}'); return false;">
                         ${photo ? `<img class="tile-image" src="${photo}" alt="" loading="lazy">` : ''}
                         <span class="tile-text">
                             <span class="tile-title">${p.title}</span>
