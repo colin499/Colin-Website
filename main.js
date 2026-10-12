@@ -96,7 +96,7 @@ function renderPost(post) {
             <article class="post post-painting post-${post.type}">
                 <div class="post-meta">${meta}</div>
                 <h2 class="post-title">${post.title}</h2>
-                <img class="post-image" src="${post.image}" alt="${post.title}" loading="lazy" onclick="openLightbox(this.src)">
+                <img class="post-image" src="${post.image}" alt="${post.title}" loading="lazy" onclick="openLightbox(this)">
                 ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
             </article>
         `;
@@ -216,9 +216,31 @@ function render() {
     feed.innerHTML = sorted.map(renderPost).join('');
 }
 
-function openLightbox(src) {
-    document.getElementById('lightbox-img').src = src;
+// The lightbox shows one painting big. The arrows (or the keyboard arrow
+// keys, or swiping on a phone) step through every painting on the page.
+let lightboxImages = [];
+let lightboxIndex = 0;
+
+function openLightbox(img) {
+    lightboxImages = [...document.querySelectorAll('#feed .post-image')];
+    lightboxIndex = Math.max(0, lightboxImages.indexOf(img));
+    showLightboxImage();
     document.getElementById('lightbox').classList.add('open');
+}
+
+function showLightboxImage() {
+    const img = lightboxImages[lightboxIndex];
+    if (!img) return;
+    document.getElementById('lightbox-img').src = img.src;
+    document.getElementById('lightbox-img').alt = img.alt;
+    document.getElementById('lightbox-title').textContent = img.alt;
+    document.getElementById('lightbox').classList.toggle('single', lightboxImages.length < 2);
+}
+
+function stepLightbox(direction) {
+    if (lightboxImages.length < 2) return;
+    lightboxIndex = (lightboxIndex + direction + lightboxImages.length) % lightboxImages.length;
+    showLightboxImage();
 }
 
 function closeLightbox() {
@@ -226,8 +248,28 @@ function closeLightbox() {
 }
 
 document.addEventListener('keydown', function (e) {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
     if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') stepLightbox(-1);
+    if (e.key === 'ArrowRight') stepLightbox(1);
 });
+
+// Swipe left or right on a phone to move between paintings.
+(function () {
+    const box = document.getElementById('lightbox');
+    let startX = null, startY = null;
+    box.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+    box.addEventListener('touchend', e => {
+        if (startX === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        startX = startY = null;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) stepLightbox(dx < 0 ? 1 : -1);
+    }, { passive: true });
+})();
 
 // ---------- walker: pounces at the cursor when it gets close ----------
 

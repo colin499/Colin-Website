@@ -340,12 +340,45 @@ a:hover {
     display: flex;
 }
 
+.lightbox-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: default;
+}
 #lightbox-img {
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 84vw;
+    max-height: 84vh;
     object-fit: contain;
     border: 2px solid #fff;
 }
+#lightbox-title {
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    text-align: center;
+}
+.lightbox-arrow,
+.lightbox-close {
+    position: absolute;
+    background: none;
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 1.6rem;
+    line-height: 1;
+    padding: 0.8rem;
+    cursor: pointer;
+    opacity: 0.7;
+    user-select: none;
+}
+.lightbox-arrow:hover,
+.lightbox-close:hover { opacity: 1; }
+.lightbox-prev { left: 0.5rem; top: 50%; transform: translateY(-50%); }
+.lightbox-next { right: 0.5rem; top: 50%; transform: translateY(-50%); }
+.lightbox-close { top: 0.5rem; right: 0.5rem; }
+#lightbox.single .lightbox-arrow { display: none; }
 
 /* Empty state */
 
@@ -570,6 +603,12 @@ body.game-playing .home-card {
     .home-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
     .home-floor { height: 170px; }
     .home-text { margin-bottom: 1rem; }
+
+    /* Lightbox: arrows along the bottom, clear of the picture */
+    #lightbox-img { max-width: 92vw; max-height: 72vh; }
+    .lightbox-prev, .lightbox-next { top: auto; bottom: 0.75rem; transform: none; font-size: 2rem; }
+    .lightbox-prev { left: 1.25rem; }
+    .lightbox-next { right: 1.25rem; }
 
     /* Cha: smaller titles so they don't cover the photo */
     .post-full-text { top: 0.9rem; left: 1.25rem; right: 1.25rem; }

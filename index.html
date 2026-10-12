@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4b59bb9a">
+    <link rel="stylesheet" href="style.css?v=82b54fdb">
 </head>
 <body>
     <header>
@@ -36,11 +36,17 @@
     </div>
 
     <div id="lightbox" onclick="closeLightbox()">
-        <img id="lightbox-img" src="" alt="">
+        <button class="lightbox-close" onclick="event.stopPropagation(); closeLightbox()" aria-label="Close">×</button>
+        <button class="lightbox-arrow lightbox-prev" onclick="event.stopPropagation(); stepLightbox(-1)" aria-label="Previous painting">←</button>
+        <div class="lightbox-stage" onclick="event.stopPropagation()">
+            <img id="lightbox-img" src="" alt="">
+            <div id="lightbox-title"></div>
+        </div>
+        <button class="lightbox-arrow lightbox-next" onclick="event.stopPropagation(); stepLightbox(1)" aria-label="Next painting">→</button>
     </div>
 
     <script src="posts.js?v=4ad5329a"></script>
     <script src="game.js?v=c953008d"></script>
-    <script src="main.js?v=2ad2098a"></script>
+    <script src="main.js?v=83c597be"></script>
 </body>
 </html>
