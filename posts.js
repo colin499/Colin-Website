@@ -30,6 +30,13 @@ const backgrounds = [
 const posts = [
     {
         "type": "painting",
+        "date": "2026-10-12",
+        "title": "A Day In The Life",
+        "image": "assets/web/paintings/A Day In The Life.jpg",
+        "caption": "oil on wood , 2026"
+    },
+    {
+        "type": "painting",
         "date": "2026-10-04",
         "title": "Jumpy",
         "image": "assets/web/paintings/Jumpy.jpg",
