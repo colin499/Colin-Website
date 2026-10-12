@@ -115,8 +115,8 @@ const BUTTON_SOUND_VOLUME = 0.8;   // 0 = silent, 1 = full volume
 const BUTTON_SOUNDS = {
     paintings: { file: 'assets/sounds/Bleep.wav' },
     writing:   { file: 'assets/sounds/Bloop.wav' },
-    projects:  { file: 'assets/sounds/Bllam.wav' },
-    cha:       { file: 'assets/sounds/Blip.wav' },
+    projects:  { file: 'assets/sounds/Blip.wav' },
+    cha:       { file: 'assets/sounds/Bllam.wav' },
     contact:   { file: 'assets/sounds/Bingo.m4a' }
 };
 
