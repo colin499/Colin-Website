@@ -17,6 +17,10 @@ const BACKGROUND_DIR = path.join(ROOT, 'content', 'background');
 const BACKGROUND_OUT = path.join(ROOT, 'assets', 'background');
 const BACKGROUND_MAX_PX = 2400;
 const OUT_FILE = path.join(ROOT, 'posts.js');
+// Substack posts are downloaded when you build and saved here, so the site
+// never has to contact Substack while someone is reading it.
+const SUBSTACK_FEED = 'https://colinlysik.substack.com/feed';
+const SUBSTACK_CACHE = path.join(ROOT, 'assets', 'substack-posts.json');
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 const TEXT_EXTS = ['.md', '.txt'];
 
@@ -233,6 +237,106 @@ function buildWriting() {
     return posts;
 }
 
+// ---------- substack ----------
+
+// Turns things like &#8217; and &amp; back into normal characters.
+function decodeEntities(s) {
+    const named = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+    return s
+        .replace(/&#x([0-9a-f]+);/gi, (m, h) => String.fromCodePoint(parseInt(h, 16)))
+        .replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(parseInt(d, 10)))
+        .replace(/&([a-z]+);/gi, (m, n) => named[n.toLowerCase()] !== undefined ? named[n.toLowerCase()] : m);
+}
+
+function stripTags(html) {
+    return decodeEntities(html.replace(/<[^>]*>/g, '')).replace(/\s+/g, ' ').trim();
+}
+
+// Keeps just the paragraphs, headings and pictures of a Substack post,
+// dropping subscribe boxes, share buttons and the like.
+function substackContentToHtml(html) {
+    const parts = [];
+    const imgSrc = tag => (tag.match(/\ssrc="([^"]*)"/) || [])[1];
+    const re = /<img\b[^>]*>|<p\b[^>]*>([\s\S]*?)<\/p>|<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi;
+    let m;
+    while ((m = re.exec(html))) {
+        if (m[0].toLowerCase().startsWith('<img')) {
+            const src = imgSrc(m[0]);
+            if (src) parts.push(`<img class="post-image" src="${escapeHtml(decodeEntities(src))}" alt="">`);
+            continue;
+        }
+        // Skip Substack's own "Subscribe now" buttons and captions.
+        if (/class="[^"]*\b(cta-caption|button-wrapper)\b/.test(m[0].slice(0, m[0].indexOf('>') + 1))) continue;
+        const inner = m[1] !== undefined ? m[1] : m[2];
+        for (const img of inner.match(/<img\b[^>]*>/gi) || []) {
+            const src = imgSrc(img);
+            if (src) parts.push(`<img class="post-image" src="${escapeHtml(decodeEntities(src))}" alt="">`);
+        }
+        const text = stripTags(inner);
+        if (text) parts.push(`<p>${escapeHtml(text)}</p>`);
+    }
+    return parts.join('');
+}
+
+function parseFeed(xml) {
+    const field = (item, name) => {
+        const m = item.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`));
+        if (!m) return '';
+        const cdata = m[1].match(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/);
+        return (cdata ? cdata[1] : decodeEntities(m[1])).trim();
+    };
+    const posts = [];
+    for (const item of xml.match(/<item>[\s\S]*?<\/item>/g) || []) {
+        const title = field(item, 'title');
+        const link = field(item, 'link') || field(item, 'guid');
+        const pub = new Date(field(item, 'pubDate'));
+        const content = field(item, 'content:encoded') || field(item, 'description');
+        if (!title || !link) continue;
+        posts.push({
+            type: 'writing',
+            date: isNaN(pub) ? new Date().toISOString().slice(0, 10) : pub.toISOString().slice(0, 10),
+            title: title.normalize('NFC'),
+            link,
+            contentHtml: substackContentToHtml(content)
+        });
+    }
+    return posts;
+}
+
+function readSubstackCache() {
+    try {
+        return JSON.parse(fs.readFileSync(SUBSTACK_CACHE, 'utf8'));
+    } catch (e) {
+        return [];
+    }
+}
+
+// Downloads the Substack feed. Posts already saved from earlier builds are
+// kept, so nothing vanishes if Substack is down or drops old posts from its feed.
+async function buildSubstack() {
+    const saved = readSubstackCache();
+    let fresh = [];
+    try {
+        const res = await fetch(SUBSTACK_FEED, { signal: AbortSignal.timeout(20000) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        fresh = parseFeed(await res.text());
+        if (!fresh.length) throw new Error('no posts in feed');
+        console.log(`Fetched ${fresh.length} Substack post${fresh.length === 1 ? '' : 's'}.`);
+    } catch (e) {
+        warnings.push(`Could not fetch Substack (${e.message}) — using the ${saved.length} saved from last time.`);
+    }
+
+    const byLink = new Map(saved.map(p => [p.link, p]));
+    for (const p of fresh) byLink.set(p.link, p);
+    const posts = [...byLink.values()];
+
+    if (fresh.length) {
+        fs.mkdirSync(path.dirname(SUBSTACK_CACHE), { recursive: true });
+        fs.writeFileSync(SUBSTACK_CACHE, JSON.stringify(posts, null, 4) + '\n');
+    }
+    return posts;
+}
+
 // ---------- home page background ----------
 
 // Every photo in content/background/ gets a web-sized .jpg copy in
@@ -350,63 +454,70 @@ stripGpsIn(path.join(ROOT, 'assets'));
 
 // ---------- write posts.js ----------
 
-const posts = [
-    ...IMAGE_SECTIONS.flatMap(s => buildImageSection(s.type, s.dir)),
-    ...buildWriting()
-];
+async function main() {
 
-for (const p of posts) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date)) {
-        warnings.push(`"${p.title}" has date "${p.date}" — dates should look like 2026-04-28. Using today instead.`);
-        p.date = new Date().toISOString().slice(0, 10);
+    const posts = [
+        ...IMAGE_SECTIONS.flatMap(s => buildImageSection(s.type, s.dir)),
+        ...buildWriting(),
+        ...await buildSubstack()
+    ];
+
+    for (const p of posts) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date)) {
+            warnings.push(`"${p.title}" has date "${p.date}" — dates should look like 2026-04-28. Using today instead.`);
+            p.date = new Date().toISOString().slice(0, 10);
+        }
     }
+
+    // ---------- home page ----------
+
+    const HOME_FILE = ['home.md', 'home.txt'].map(f => path.join(ROOT, 'content', f)).find(fs.existsSync);
+    let homeHtml = '';
+    if (HOME_FILE) {
+        homeHtml = markdownToHtml(parseFrontMatter(fs.readFileSync(HOME_FILE, 'utf8')).body);
+    } else {
+        warnings.push('content/home.md (or home.txt) is missing — the home page will be blank.');
+    }
+
+    const header = [
+        '// GENERATED FILE — do not edit by hand.',
+        '// Edit the files in the content/ folder, then double-click "Build Site.command".',
+        ''
+    ].join('\n');
+
+    fs.writeFileSync(OUT_FILE,
+        header +
+        'const home = ' + JSON.stringify({ html: homeHtml }, null, 4) + ';\n\n' +
+        'const backgrounds = ' + JSON.stringify(backgrounds, null, 4) + ';\n\n' +
+        'const posts = ' + JSON.stringify(posts, null, 4) + ';\n');
+
+    // ---------- make browsers pick up changes straight away ----------
+
+    // Phones hang on to old copies of the site's files. Each file's address in
+    // index.html gets a short code that changes whenever the file changes, so a
+    // browser never mixes a new file with a stale one.
+    const INDEX_FILE = path.join(ROOT, 'index.html');
+    if (fs.existsSync(INDEX_FILE)) {
+        const crypto = require('crypto');
+        const before = fs.readFileSync(INDEX_FILE, 'utf8');
+        const after = before.replace(/((?:href|src)=")(style\.css|posts\.js|main\.js|game\.js)(?:\?v=[^"]*)?(")/g, (all, start, file, end) => {
+            const full = path.join(ROOT, file);
+            if (!fs.existsSync(full)) return all;
+            const stamp = crypto.createHash('md5').update(fs.readFileSync(full)).digest('hex').slice(0, 8);
+            return `${start}${file}?v=${stamp}${end}`;
+        });
+        if (after !== before) fs.writeFileSync(INDEX_FILE, after);
+    }
+
+    const counts = {};
+    posts.forEach(p => { counts[p.type] = (counts[p.type] || 0) + 1; });
+    console.log('Built posts.js: ' + Object.entries(counts).map(([t, n]) => `${n} ${t}`).join(', ') + `, ${backgrounds.length} background.`);
+    if (warnings.length) {
+        console.log('');
+        console.log('Heads up:');
+        warnings.forEach(w => console.log('  - ' + w));
+    }
+
 }
 
-// ---------- home page ----------
-
-const HOME_FILE = ['home.md', 'home.txt'].map(f => path.join(ROOT, 'content', f)).find(fs.existsSync);
-let homeHtml = '';
-if (HOME_FILE) {
-    homeHtml = markdownToHtml(parseFrontMatter(fs.readFileSync(HOME_FILE, 'utf8')).body);
-} else {
-    warnings.push('content/home.md (or home.txt) is missing — the home page will be blank.');
-}
-
-const header = [
-    '// GENERATED FILE — do not edit by hand.',
-    '// Edit the files in the content/ folder, then double-click "Build Site.command".',
-    ''
-].join('\n');
-
-fs.writeFileSync(OUT_FILE,
-    header +
-    'const home = ' + JSON.stringify({ html: homeHtml }, null, 4) + ';\n\n' +
-    'const backgrounds = ' + JSON.stringify(backgrounds, null, 4) + ';\n\n' +
-    'const posts = ' + JSON.stringify(posts, null, 4) + ';\n');
-
-// ---------- make browsers pick up changes straight away ----------
-
-// Phones hang on to old copies of the site's files. Each file's address in
-// index.html gets a short code that changes whenever the file changes, so a
-// browser never mixes a new file with a stale one.
-const INDEX_FILE = path.join(ROOT, 'index.html');
-if (fs.existsSync(INDEX_FILE)) {
-    const crypto = require('crypto');
-    const before = fs.readFileSync(INDEX_FILE, 'utf8');
-    const after = before.replace(/((?:href|src)=")(style\.css|posts\.js|main\.js|game\.js)(?:\?v=[^"]*)?(")/g, (all, start, file, end) => {
-        const full = path.join(ROOT, file);
-        if (!fs.existsSync(full)) return all;
-        const stamp = crypto.createHash('md5').update(fs.readFileSync(full)).digest('hex').slice(0, 8);
-        return `${start}${file}?v=${stamp}${end}`;
-    });
-    if (after !== before) fs.writeFileSync(INDEX_FILE, after);
-}
-
-const counts = {};
-posts.forEach(p => { counts[p.type] = (counts[p.type] || 0) + 1; });
-console.log('Built posts.js: ' + Object.entries(counts).map(([t, n]) => `${n} ${t}`).join(', ') + `, ${backgrounds.length} background.`);
-if (warnings.length) {
-    console.log('');
-    console.log('Heads up:');
-    warnings.forEach(w => console.log('  - ' + w));
-}
+main().catch(e => { console.error(e); process.exit(1); });

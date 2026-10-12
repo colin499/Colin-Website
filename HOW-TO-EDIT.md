@@ -85,7 +85,10 @@ Leave a blank line between paragraphs.
 
 3. Double-click **Build Site.command**.
 
-Your Substack posts still show up automatically alongside these.
+Your Substack posts show up alongside these. The build downloads them
+from Substack each time you run it, so after publishing something new on
+Substack, double-click **Build Site.command** to get it onto the site.
+If Substack can't be reached, the posts saved from the last build are used.
 
 ## Hide something without deleting it
 
@@ -106,6 +109,8 @@ content/
   cha/              photos of Cha, same format as paintings
   writing/          one .md file per piece of writing
     original-word-docs/   the Word files these started as (not used by the site)
+assets/
+  substack-posts.json   your Substack posts, saved by the build (don't edit)
 Build Site.command  double-click after editing
 HOW-TO-EDIT.md      this file
 ```

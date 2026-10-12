@@ -60,38 +60,6 @@ function formatDate(dateStr) {
     return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
 }
 
-function parseSubstackContent(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const parts = [];
-    doc.body.querySelectorAll('p, img, h2, h3').forEach(el => {
-        if (el.tagName === 'IMG') {
-            parts.push(`<img class="post-image" src="${el.src}" alt="${el.alt || ''}">`);
-        } else {
-            const text = el.textContent.trim();
-            if (text) parts.push(`<p>${text}</p>`);
-        }
-    });
-    return parts.join('');
-}
-
-async function fetchSubstackPosts() {
-    const rssUrl = 'https://colinlysik.substack.com/feed';
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-    try {
-        const res = await fetch(apiUrl);
-        const data = await res.json();
-        if (data.status !== 'ok') return [];
-        return data.items.map(item => ({
-            type: 'writing',
-            date: item.pubDate.split(' ')[0],
-            title: item.title,
-            contentHtml: parseSubstackContent(item.content || item.description)
-        }));
-    } catch (e) {
-        return [];
-    }
-}
-
 function renderPost(post) {
     const meta = `${formatDate(post.date)} — ${post.type}`;
 
@@ -377,10 +345,6 @@ window.addEventListener('resize', setHeaderHeight);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(setHeaderHeight);
 setHeaderHeight();
 
-async function init() {
-    const substackPosts = await fetchSubstackPosts();
-    allPosts = [...posts, ...substackPosts];
-    showSectionFromAddress();
-}
-
-init();
+// Substack posts are already in posts.js (the build downloads them).
+allPosts = posts;
+showSectionFromAddress();
