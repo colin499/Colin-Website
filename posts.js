@@ -6,24 +6,28 @@ const home = {
 
 const backgrounds = [
     {
-        "image": "assets/background/1-IMG_9164.jpg",
-        "title": "1 IMG 9164"
+        "image": "assets/background/1-A Day In The Life.jpg",
+        "title": "1 A Day In The Life"
     },
     {
-        "image": "assets/background/2-IMG_9166.jpg",
-        "title": "2 IMG 9166"
+        "image": "assets/background/2-IMG_9164.jpg",
+        "title": "2 IMG 9164"
     },
     {
-        "image": "assets/background/3-IMG_8568.jpg",
-        "title": "3 IMG 8568"
+        "image": "assets/background/3-IMG_9166.jpg",
+        "title": "3 IMG 9166"
     },
     {
-        "image": "assets/background/4-IMG_8109.jpg",
-        "title": "4 IMG 8109"
+        "image": "assets/background/4-IMG_8568.jpg",
+        "title": "4 IMG 8568"
     },
     {
-        "image": "assets/background/5-IMG_8739.jpg",
-        "title": "5 IMG 8739"
+        "image": "assets/background/5-IMG_8109.jpg",
+        "title": "5 IMG 8109"
+    },
+    {
+        "image": "assets/background/6-IMG_8739.jpg",
+        "title": "6 IMG 8739"
     }
 ];
 
