@@ -22,10 +22,6 @@ const backgrounds = [
         "title": "4 IMG 8568"
     },
     {
-        "image": "assets/background/5-IMG_8109.jpg",
-        "title": "5 IMG 8109"
-    },
-    {
         "image": "assets/background/6-IMG_8739.jpg",
         "title": "6 IMG 8739"
     }

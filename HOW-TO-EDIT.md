@@ -28,7 +28,8 @@ Crop the photo to just the painting before adding it.
   iPhone photos (`.heic`) are fine.
 - They go in file-name order: the first name is at the top. To reorder,
   rename them, for example `1-gold.jpeg`, `2-apple.jpeg`.
-- To remove one, delete it from the folder and rebuild.
+- To remove one, delete it from the folder and rebuild. To keep it around
+  without showing it, move it into `content/background/not-shown/` instead.
 
 ## Add a painting
 
@@ -139,6 +140,15 @@ When you're ready to put this on the internet, the `content` folder is
 already in the format that free tools like Netlify + Decap CMS expect.
 That gives you a browser-based editor with image upload and a publish
 button, with no more file editing at all.
+
+## The game between the paintings
+
+Scrolling the home page used to open a small running game in the gaps
+between the paintings, with a final level after the last one.
+
+**Currently switched off.** To bring it back, open `main.js`, find the line
+`const GAMES_ON = false;` near the top and change `false` to `true`, then
+rebuild. The game itself lives in `game.js`.
 
 ## The bouncing photo at the bottom
 

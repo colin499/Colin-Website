@@ -1,5 +1,9 @@
 // Site logic. Posts come from posts.js, which is generated from the content/ folder by build.js.
 let currentFilter = 'home';
+
+// The runner game hidden between the paintings on the home page (see game.js).
+// Switched off for now: set this to true to bring it back.
+const GAMES_ON = false;
 let allPosts = [...posts];
 
 function toggleDropdown() {
@@ -163,12 +167,12 @@ function render() {
                 </div>
                 </div>
                 ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${i ? ' loading="lazy"' : ''}>`)
-                    .join('<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>')}
-                <div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>
-                <div class="home-floor"></div>
+                    .join(GAMES_ON ? '<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>' : '')}
+                ${GAMES_ON ? '<div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>' : ''}
+                ${GAMES_ON || WALKER_ON ? '<div class="home-floor"></div>' : ''}
             </section>
         `;
-        HomeGames.mount(feed);
+        if (GAMES_ON) HomeGames.mount(feed);
         return;
     }
 
