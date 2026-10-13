@@ -131,6 +131,19 @@ function convertHeic(dir) {
     }
 }
 
+// The width and height of a photo, in pixels, so the page can leave the right
+// amount of room for it before it loads.
+function pixelSize(file) {
+    try {
+        const out = execFileSync('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', file], { encoding: 'utf8' });
+        const width = Number((out.match(/pixelWidth:\s*(\d+)/) || [])[1]);
+        const height = Number((out.match(/pixelHeight:\s*(\d+)/) || [])[1]);
+        return width && height ? { width, height } : {};
+    } catch (e) {
+        return {};
+    }
+}
+
 // ---------- image sections (paintings, cha) ----------
 
 // Phone photos are several megabytes each, which is slow to load (especially
@@ -190,11 +203,13 @@ function buildImageSection(type, dir) {
         }
         usedImages.add(image);
 
+        const url = webCopy(path.join(dir, image), label);
         posts.push({
             type,
             date: meta.date || fileDate(path.join(dir, image)),
             title: meta.title || titleFromFilename(note),
-            image: webCopy(path.join(dir, image), label),
+            image: url,
+            ...pixelSize(path.join(ROOT, url)),
             caption: meta.caption || body || ''
         });
     }
@@ -203,11 +218,13 @@ function buildImageSection(type, dir) {
     for (const image of images) {
         if (usedImages.has(image)) continue;
         const full = path.join(dir, image);
+        const url = webCopy(full, label);
         posts.push({
             type,
             date: fileDate(full),
             title: titleFromFilename(image),
-            image: webCopy(full, label),
+            image: url,
+            ...pixelSize(path.join(ROOT, url)),
             caption: ''
         });
         warnings.push(`content/${label}/${image} has no note — shown with title "${titleFromFilename(image)}". Add a .md file to give it a real title and caption.`);
@@ -389,7 +406,7 @@ function buildBackgrounds() {
                 continue;
             }
         }
-        backgrounds.push({ image: relativeUrl(out), title: titleFromFilename(file) });
+        backgrounds.push({ image: relativeUrl(out), title: titleFromFilename(file), ...pixelSize(out) });
     }
 
     if (!backgrounds.length) {

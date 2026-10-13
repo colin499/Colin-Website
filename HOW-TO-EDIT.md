@@ -19,15 +19,18 @@ italic and bold rules as writing. Rebuild.
 
 ## Change the home page background
 
-The home page background is made of the photos in `content/background/`.
-Each one is shown whole, as wide as the screen, and they stack top to
-bottom, so scrolling down the home page scrolls over them one after another.
+The site is one long page: a painting fills the first screen with the title
+and buttons over it, and the buttons scroll down to the sections below
+(paintings, writing, projects, cha, contact).
+
+The backdrop is the first photo, by file name, in `content/background/`.
 Crop the photo to just the painting before adding it.
 
-- To add one, drop the photo into `content/background/` and rebuild.
-  iPhone photos (`.heic`) are fine.
-- They go in file-name order: the first name is at the top. To reorder,
-  rename them, for example `1-gold.jpeg`, `2-apple.jpeg`.
+- To change it, drop the new photo in and give it a name that sorts first,
+  for example `1-gold.jpeg`. iPhone photos (`.heic`) are fine.
+- The other photos in the folder are only used when the game is switched on
+  (see "The game between the paintings"), when they stack top to bottom in
+  file-name order with a level in each gap.
 - To remove one, delete it from the folder and rebuild. To keep it around
   without showing it, move it into `content/background/not-shown/` instead.
 
@@ -148,7 +151,8 @@ between the paintings, with a final level after the last one.
 
 **Currently switched off.** To bring it back, open `main.js`, find the line
 `const GAMES_ON = false;` near the top and change `false` to `true`, then
-rebuild. The game itself lives in `game.js`.
+rebuild. The game itself lives in `game.js`. With it on, every photo in
+`content/background/` is shown again, stacked top to bottom.
 
 ## The bouncing photo at the bottom
 

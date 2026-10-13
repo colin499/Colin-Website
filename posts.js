@@ -7,23 +7,33 @@ const home = {
 const backgrounds = [
     {
         "image": "assets/background/1-A Day In The Life.jpg",
-        "title": "1 A Day In The Life"
+        "title": "1 A Day In The Life",
+        "width": 2400,
+        "height": 2395
     },
     {
         "image": "assets/background/2-IMG_9164.jpg",
-        "title": "2 IMG 9164"
+        "title": "2 IMG 9164",
+        "width": 2400,
+        "height": 1800
     },
     {
         "image": "assets/background/3-IMG_9166.jpg",
-        "title": "3 IMG 9166"
+        "title": "3 IMG 9166",
+        "width": 1800,
+        "height": 2400
     },
     {
         "image": "assets/background/4-IMG_8568.jpg",
-        "title": "4 IMG 8568"
+        "title": "4 IMG 8568",
+        "width": 1800,
+        "height": 2400
     },
     {
         "image": "assets/background/6-IMG_8739.jpg",
-        "title": "6 IMG 8739"
+        "title": "6 IMG 8739",
+        "width": 2400,
+        "height": 1800
     }
 ];
 
@@ -33,6 +43,8 @@ const posts = [
         "date": "2026-10-12",
         "title": "A Day In The Life",
         "image": "assets/web/paintings/A Day In The Life.jpg",
+        "width": 1800,
+        "height": 1796,
         "caption": "oil on wood , 2026"
     },
     {
@@ -40,6 +52,8 @@ const posts = [
         "date": "2026-10-04",
         "title": "Jumpy",
         "image": "assets/web/paintings/Jumpy.jpg",
+        "width": 1800,
+        "height": 1350,
         "caption": "oil on wood , 2026"
     },
     {
@@ -47,6 +61,8 @@ const posts = [
         "date": "2026-10-04",
         "title": "Mr. Anderson",
         "image": "assets/web/paintings/Mr. Anderson.jpg",
+        "width": 1350,
+        "height": 1800,
         "caption": "oil on wood , 2026"
     },
     {
@@ -54,6 +70,8 @@ const posts = [
         "date": "2026-04-25",
         "title": "amorph 1",
         "image": "assets/web/paintings/amorph_1_WIP.jpg",
+        "width": 1800,
+        "height": 1785,
         "caption": "amorphous monkstery"
     },
     {
@@ -61,6 +79,8 @@ const posts = [
         "date": "2026-04-28",
         "title": "amorph delta delta",
         "image": "assets/web/paintings/IMG_3884.jpg",
+        "width": 1795,
+        "height": 1800,
         "caption": "oil on wood"
     },
     {
@@ -68,6 +88,8 @@ const posts = [
         "date": "2026-10-04",
         "title": "cornycopia",
         "image": "assets/web/paintings/cornycopia.jpg",
+        "width": 1361,
+        "height": 1800,
         "caption": "oil on wood , 2026"
     },
     {
@@ -75,6 +97,8 @@ const posts = [
         "date": "2021-04-20",
         "title": "laisse-moi partir",
         "image": "assets/web/paintings/IMG_0178.jpg",
+        "width": 1768,
+        "height": 1800,
         "caption": "oil on wood, 2021, Mexico"
     },
     {
@@ -82,6 +106,8 @@ const posts = [
         "date": "2026-04-26",
         "title": "the pretty big apple",
         "image": "assets/web/paintings/IMG_0183.jpg",
+        "width": 1307,
+        "height": 1800,
         "caption": "oil on canvas 2021"
     },
     {
@@ -89,6 +115,8 @@ const posts = [
         "date": "2026-10-04",
         "title": "Cha @ Erykah Badu with a french fry in her lung",
         "image": "assets/web/cha/Cha @ Erykah Badu with a french fry in her lung.jpg",
+        "width": 1800,
+        "height": 1350,
         "caption": ""
     },
     {
@@ -96,6 +124,8 @@ const posts = [
         "date": "2026-10-04",
         "title": "L'artiste",
         "image": "assets/web/cha/L'artiste.jpg",
+        "width": 1800,
+        "height": 1350,
         "caption": ""
     },
     {
@@ -103,6 +133,8 @@ const posts = [
         "date": "2026-10-04",
         "title": "Momo Mía",
         "image": "assets/web/cha/Momo Mía.jpg",
+        "width": 1800,
+        "height": 1350,
         "caption": ""
     },
     {

@@ -1,65 +1,75 @@
 // Site logic. Posts come from posts.js, which is generated from the content/ folder by build.js.
-let currentFilter = 'home';
+//
+// The site is one long page: the first painting as a backdrop with the title and
+// buttons over it, then a section for each part (paintings, writing, projects,
+// cha, contact) one after the other below. The buttons scroll down to the
+// sections. A piece of writing or a project opens on a page of its own, with a
+// link back to its section.
 
 // The runner game hidden between the paintings on the home page (see game.js).
-// Switched off for now: set this to true to bring it back.
+// Switched off for now: set this to true to bring it back (it also brings back
+// the full stack of background paintings, since the levels sit between them).
 const GAMES_ON = false;
 let allPosts = [...posts];
 
-function toggleDropdown() {
-    document.getElementById('dropdown').classList.toggle('open');
-}
-
-// The section being viewed is kept in the address (index.html#paintings), so
-// reloading stays on the same section and the back button works.
-const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha', contact: 'contact' };
-
+// The sections, in the order they appear down the page, and the kind of post each shows.
+const SECTIONS = ['paintings', 'writing', 'projects', 'cha', 'contact'];
+const TYPES = { paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha' };
 // Sections shown as a grid of squares that each open into one piece.
 const PIECE_SECTIONS = ['writing', 'projects'];
 
-// On those pages: which piece is open (null = the grid of squares).
-let currentPiece = null;
+// What is on screen: the long page ('home') or a single piece ('piece').
+let view = null;
 
 function pieceSlug(post) {
     return post.title.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled';
 }
 
-function showSection(value, label, piece) {
-    currentPiece = PIECE_SECTIONS.includes(value) && piece ? piece : null;
-    currentFilter = value;
-    document.getElementById('dropdown-label').textContent = label;
-    document.getElementById('dropdown').classList.remove('open');
-    render();
+function postsOf(section) {
+    return allPosts.filter(p => p.type === TYPES[section]).sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-function showSectionFromAddress() {
-    const [label, piece] = decodeURIComponent(location.hash.slice(1)).split('/');
-    if (SECTIONS[label]) showSection(SECTIONS[label], label, piece);
-    else showSection('home', 'home');
+// Scrolls the long page to a section, or to the top for 'home'. The top bar is
+// fixed over the page, so the section's top lands just under it.
+function scrollToSection(name, smooth) {
+    const behavior = smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto';
+    if (name === 'home') { window.scrollTo({ top: 0, behavior }); return; }
+    const el = document.getElementById('section-' + name);
+    if (!el) return;
+    const bar = document.querySelector('header').offsetHeight;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - bar, behavior });
 }
 
-function selectFilter(value, label) {
-    const address = value === 'home' ? location.pathname + location.search : '#' + label;
-    if (value !== currentFilter || currentPiece) history.pushState(null, '', address);
-    showSection(value, label);
-    window.scrollTo(0, 0);
+// A button on the home card, or the site title: go to that part of the long page.
+// The address keeps the section (index.html#writing), so reloading and the back button work.
+function goTo(name) {
+    const hash = name === 'home' ? '' : '#' + name;
+    if (location.hash !== hash) history.pushState(null, '', hash || location.pathname + location.search);
+    if (view !== 'home') {
+        renderHome();
+        scrollToSection(name, false);
+    } else {
+        scrollToSection(name, true);
+    }
 }
 
-// Open one piece (of writing, or one project) from the grid.
+// Open one piece (of writing, or one project) from its grid.
 function openPiece(section, slug) {
     history.pushState(null, '', '#' + section + '/' + slug);
-    showSection(section, section, slug);
-    window.scrollTo(0, 0);
+    renderPiece(section, slug);
 }
 
-window.addEventListener('popstate', showSectionFromAddress);
+// Show whatever the address says: a section of the long page, or one piece.
+function showFromAddress(initial) {
+    const [name, slug] = decodeURIComponent(location.hash.slice(1)).split('/');
+    if (slug && PIECE_SECTIONS.includes(name)) { renderPiece(name, slug); return; }
+    if (view !== 'home') renderHome();
+    // On a plain reload with no section in the address, the browser puts the scroll back itself.
+    if (name || !initial) scrollToSection(SECTIONS.includes(name) ? name : 'home', false);
+}
 
-document.addEventListener('click', function (e) {
-    const dropdown = document.getElementById('dropdown');
-    if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('open');
-    }
-});
+window.addEventListener('popstate', () => showFromAddress(false));
+
 
 function formatDate(dateStr) {
     const [year, month, day] = dateStr.split('-');
@@ -91,22 +101,11 @@ function renderPost(post) {
     if (post.type === 'cha' && post.image) {
         return `
             <article class="post-full">
-                <img class="post-full-image" src="${post.image}" alt="${post.title}" loading="lazy">
+                <img class="post-full-image" src="${post.image}" alt="${post.title}"${sizeAttrs(post)} loading="lazy">
                 <div class="post-full-text">
                     <h2 class="post-title">${post.title}</h2>
                     ${post.caption ? `<div class="post-full-caption">${post.caption}</div>` : ''}
                 </div>
-            </article>
-        `;
-    }
-
-    if (post.image) {
-        return `
-            <article class="post post-painting post-${post.type}">
-                <div class="post-meta">${meta}</div>
-                <h2 class="post-title">${post.title}</h2>
-                <img class="post-image" src="${post.image}" alt="${post.title}" loading="lazy" onclick="openLightbox(this)">
-                ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
             </article>
         `;
     }
@@ -137,96 +136,134 @@ function playButtonSound(name) {
     sound.audio.play().catch(() => {});
 }
 
-function render() {
-    const feed = document.getElementById('feed');
+// ---------- the long page ----------
 
-    // On the home page the top bar goes away: the title and menu float over the paintings.
-    document.body.classList.toggle('is-home', currentFilter === 'home');
+function renderHome() {
+    view = 'home';
+    document.body.classList.add('is-home');
     setHeaderHeight();
-    HomeGames.unmount();   // the runner game only lives on the home page
+    HomeGames.unmount();
 
-    if (currentFilter === 'home') {
-        // One full-width painting per photo in content/background/, stacked
-        // top to bottom. The card stays put while they scroll past behind it.
-        const panels = (typeof backgrounds !== 'undefined' && backgrounds.length)
-            ? backgrounds
-            : [{ image: 'assets/home-painting.jpg', title: '' }];
-        feed.innerHTML = `
-            <section class="home">
-                <div class="home-overlay">
-                <div class="home-card">
-                    <h1 class="home-title">Brain Food</h1>
-                    <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
-                    <ul class="home-links">
-                        <li><a href="#" onclick="playButtonSound('paintings'); selectFilter('painting', 'paintings'); return false;">paintings</a></li>
-                        <li><a href="#" onclick="playButtonSound('writing'); selectFilter('writing', 'writing'); return false;">writing</a></li>
-                        <li><a href="#" onclick="playButtonSound('projects'); selectFilter('projects', 'projects'); return false;">projects</a></li>
-                        <li><a href="#" onclick="playButtonSound('cha'); selectFilter('cha', 'cha'); return false;">cha</a></li>
-                        <li><a href="#" onclick="playButtonSound('contact'); selectFilter('contact', 'contact'); return false;">contact</a></li>
-                    </ul>
-                </div>
-                </div>
-                ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${i ? ' loading="lazy"' : ''}>`)
-                    .join(GAMES_ON ? '<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>' : '')}
-                ${GAMES_ON ? '<div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>' : ''}
-                ${GAMES_ON || WALKER_ON ? '<div class="home-floor"></div>' : ''}
-            </section>
-        `;
-        if (GAMES_ON) HomeGames.mount(feed);
-        return;
-    }
+    // The backdrop: the first photo in content/background/. With the game on, every
+    // photo is stacked top to bottom with a level in each gap, as it used to be.
+    const all = (typeof backgrounds !== 'undefined' && backgrounds.length)
+        ? backgrounds
+        : [{ image: 'assets/home-painting.jpg', title: '' }];
+    const panels = GAMES_ON ? all : all.slice(0, 1);
+    const feed = document.getElementById('feed');
+    feed.innerHTML = `
+        <section class="home${GAMES_ON ? '' : ' home-one-screen'}">
+            <div class="home-overlay">
+            <div class="home-card">
+                <h1 class="home-title">Brain Food</h1>
+                <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
+                <ul class="home-links">
+                    ${SECTIONS.map(s => `<li><a href="#${s}" onclick="playButtonSound('${s}'); goTo('${s}'); return false;">${s}</a></li>`).join('')}
+                </ul>
+            </div>
+            </div>
+            ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${sizeAttrs(p)}${i ? ' loading="lazy"' : ''}>`)
+                .join(GAMES_ON ? '<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>' : '')}
+            ${GAMES_ON ? '<div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>' : ''}
+            ${GAMES_ON || WALKER_ON ? '<div class="home-floor"></div>' : ''}
+        </section>
+        ${SECTIONS.map(renderSection).join('')}
+    `;
+    if (GAMES_ON) HomeGames.mount(feed);
+    updateHeader();
+}
 
-    if (currentFilter === 'contact') {
-        feed.innerHTML = `
+// One section of the long page: a heading, then its posts.
+function renderSection(name) {
+    let body;
+    if (name === 'contact') {
+        body = `
             <div class="post post-writing">
                 <a href="mailto:colinlysik@gmail.com">colinlysik@gmail.com</a>
                 <div><a class="button" href="https://colinlysik.substack.com/" target="_blank" rel="noopener">substack</a></div>
             </div>
         `;
-        return;
-    }
-
-    const filtered = allPosts.filter(p => p.type === currentFilter);
-
-    const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (sorted.length === 0) {
-        feed.innerHTML = '<div class="empty">nothing here yet.</div>';
-        return;
-    }
-
-    // Writing and projects: a grid of squares, one per piece. Clicking a square opens that piece.
-    if (PIECE_SECTIONS.includes(currentFilter)) {
-        const section = currentFilter;
-        const piece = currentPiece && sorted.find(p => pieceSlug(p) === currentPiece);
-        if (piece) {
-            feed.innerHTML = `
-                <div class="piece-back"><a href="#${section}" onclick="selectFilter('${section}', '${section}'); return false;">← all ${section}</a></div>
-                ${renderPost(piece)}
-            `;
-            return;
-        }
-        feed.innerHTML = `
-            <div class="tiles">
-                ${sorted.map(p => {
-                    // the cover photo, or else the first photo in the piece, becomes the picture on its square
-                    const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
-                    return `
-                    <a class="tile${photo ? ' tile-photo' : ''}" href="#${section}/${pieceSlug(p)}" onclick="openPiece('${section}', '${pieceSlug(p)}'); return false;">
-                        ${photo ? `<img class="tile-image" src="${photo}" alt="" loading="lazy">` : ''}
+    } else {
+        const sorted = postsOf(name);
+        if (!sorted.length) {
+            body = '<div class="empty">nothing here yet.</div>';
+        } else if (name === 'paintings') {
+            // A grid of squares, one per painting. Clicking one shows the whole painting big.
+            body = `
+                <div class="tiles">
+                    ${sorted.map(p => `
+                    <a class="tile tile-photo tile-painting" href="${p.image}" onclick="openLightbox(this.querySelector('img')); return false;">
+                        <img class="tile-image" src="${p.image}" alt="${p.title}"${p.caption ? ` data-caption="${p.caption.replace(/"/g, '&quot;')}"` : ''} loading="lazy">
                         <span class="tile-text">
                             <span class="tile-title">${p.title}</span>
                             <span class="tile-date">${formatDate(p.date)}</span>
                         </span>
-                    </a>
-                `; }).join('')}
-            </div>
-        `;
-        return;
+                    </a>`).join('')}
+                </div>
+            `;
+        } else if (PIECE_SECTIONS.includes(name)) {
+            // Writing and projects: a grid of squares, one per piece. Clicking a square opens that piece.
+            body = `
+                <div class="tiles">
+                    ${sorted.map(p => {
+                        // the cover photo, or else the first photo in the piece, becomes the picture on its square
+                        const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
+                        return `
+                        <a class="tile${photo ? ' tile-photo' : ''}" href="#${name}/${pieceSlug(p)}" onclick="openPiece('${name}', '${pieceSlug(p)}'); return false;">
+                            ${photo ? `<img class="tile-image" src="${photo}" alt="" loading="lazy">` : ''}
+                            <span class="tile-text">
+                                <span class="tile-title">${p.title}</span>
+                                <span class="tile-date">${formatDate(p.date)}</span>
+                            </span>
+                        </a>
+                    `; }).join('')}
+                </div>
+            `;
+        } else {
+            body = sorted.map(renderPost).join('');
+        }
     }
-
-    feed.innerHTML = sorted.map(renderPost).join('');
+    return `<section class="section" id="section-${name}"><h2 class="section-title">${name}</h2>${body}</section>`;
 }
+
+// One piece of writing or one project, on a page of its own.
+function renderPiece(section, slug) {
+    const piece = postsOf(section).find(p => pieceSlug(p) === slug);
+    if (!piece) { renderHome(); scrollToSection(section, false); return; }
+    view = 'piece';
+    document.body.classList.remove('is-home');
+    setHeaderHeight();
+    updateHeader();
+    HomeGames.unmount();
+    document.getElementById('feed').innerHTML = `
+        <div class="piece-back"><a href="#${section}" onclick="goTo('${section}'); return false;">← all ${section}</a></div>
+        ${renderPost(piece)}
+    `;
+    window.scrollTo(0, 0);
+}
+
+// Over the backdrop the top bar is see-through, with the title floating on the
+// painting. Once you scroll past the backdrop it gets its paper background.
+function updateHeader() {
+    const header = document.querySelector('header');
+    if (view !== 'home') { header.classList.remove('solid'); return; }
+    const backdrop = document.querySelector('.home');
+    header.classList.toggle('solid', !backdrop || backdrop.getBoundingClientRect().bottom <= header.offsetHeight);
+}
+
+let headerCheckQueued = false;
+window.addEventListener('scroll', () => {
+    if (headerCheckQueued) return;
+    headerCheckQueued = true;
+    requestAnimationFrame(() => { headerCheckQueued = false; updateHeader(); });
+}, { passive: true });
+
+// width and height for a photo, when the build recorded them, so the page
+// doesn't jump about while photos load.
+function sizeAttrs(p) {
+    return p.width && p.height ? ` width="${p.width}" height="${p.height}"` : '';
+}
+
 
 // The lightbox shows one painting big. The arrows (or the keyboard arrow
 // keys, or swiping on a phone) step through every painting on the page.
@@ -234,7 +271,7 @@ let lightboxImages = [];
 let lightboxIndex = 0;
 
 function openLightbox(img) {
-    lightboxImages = [...document.querySelectorAll('#feed .post-image')];
+    lightboxImages = [...document.querySelectorAll('#feed .tile-painting img')];
     lightboxIndex = Math.max(0, lightboxImages.indexOf(img));
     showLightboxImage();
     document.getElementById('lightbox').classList.add('open');
@@ -245,7 +282,7 @@ function showLightboxImage() {
     if (!img) return;
     document.getElementById('lightbox-img').src = img.src;
     document.getElementById('lightbox-img').alt = img.alt;
-    document.getElementById('lightbox-title').textContent = img.alt;
+    document.getElementById('lightbox-title').textContent = img.dataset.caption ? `${img.alt} — ${img.dataset.caption}` : img.alt;
     document.getElementById('lightbox').classList.toggle('single', lightboxImages.length < 2);
 }
 
@@ -410,4 +447,4 @@ setHeaderHeight();
 
 // Substack posts are already in posts.js (the build downloads them).
 allPosts = posts;
-showSectionFromAddress();
+showFromAddress(true);

@@ -41,57 +41,6 @@ header {
     letter-spacing: 0.02em;
 }
 
-.dropdown {
-    position: relative;
-}
-
-.dropdown-toggle {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    background: transparent;
-    border: none;
-    border-bottom: var(--border);
-    padding: 0.1rem 0;
-    cursor: pointer;
-    color: var(--black);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.dropdown-toggle:focus {
-    outline: none;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: calc(100% + 0.5rem);
-    background-color: var(--paper);
-    border: var(--border);
-    list-style: none;
-    min-width: 100%;
-    z-index: 100;
-}
-
-.dropdown-menu li {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    padding: 0.4rem 0.8rem;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.dropdown-menu li:hover {
-    background-color: var(--black);
-    color: var(--paper);
-}
-
-.dropdown.open .dropdown-menu {
-    display: block;
-}
-
 /* Feed */
 
 #feed {
@@ -118,18 +67,6 @@ header {
 
 .post-writing .post-body {
     width: 100%;
-}
-
-.post-painting {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-/* Size of the photos in paintings and cha. */
-.post-painting .post-image {
-    width: 800px;
 }
 
 .post-meta {
@@ -166,6 +103,7 @@ header {
 .post-image {
     display: block;
     max-width: 100%;
+    height: auto;
     width: 480px;
     margin-top: 0.5rem;
     border: var(--border);
@@ -425,8 +363,8 @@ body {
     background-color: #8a6f2c;
 }
 
-/* No top bar on the home page: the title and menu sit on top of the
-   paintings, which start at the very top of the screen. */
+/* No top bar over the backdrop: the title floats on the painting, which starts
+   at the very top of the screen. */
 body.is-home header {
     position: fixed;
     left: 0;
@@ -436,15 +374,24 @@ body.is-home header {
     pointer-events: none;
 }
 
-body.is-home .site-title,
-body.is-home .dropdown {
+body.is-home .site-title {
     pointer-events: auto;
+}
+
+/* Once you scroll past the backdrop, the bar gets its paper background back. */
+body.is-home header.solid {
+    background-color: var(--paper);
+    border-bottom: var(--border);
+    pointer-events: auto;
+}
+
+body.is-home header.solid .site-title {
+    text-shadow: none;
 }
 
 /* Home page text sits straight on the paintings, with no box. A soft glow
    in the page colour keeps it readable over dark paint. */
 body.is-home .site-title,
-body.is-home .dropdown-toggle,
 .home-card,
 .post-full-text {
     font-weight: 500;
@@ -460,6 +407,50 @@ body.is-home .dropdown-toggle,
     display: block;
     width: 100%;
     height: auto;
+}
+
+/* With the game off, only the first photo is shown, filling one screen as the backdrop. */
+.home-one-screen .home-painting {
+    height: var(--panel-h);
+    object-fit: cover;
+}
+
+/* The card then simply sits on the backdrop and scrolls away with it,
+   instead of staying put while a stack of paintings goes past. */
+.home-one-screen .home-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin-bottom: 0;
+}
+
+/* ---------- The sections down the long page ---------- */
+
+.section {
+    border-top: var(--border);
+}
+
+/* A painting's square shows it big when clicked. */
+.tile-painting {
+    cursor: zoom-in;
+}
+
+/* The section's name, styled like the button that leads to it. */
+.section-title {
+    display: inline-block;
+    margin: 2rem 2rem 0;
+    padding: 0.55rem 1.2rem;
+    font-size: 16px;
+    font-weight: 500;
+    background-color: var(--paper);
+    border: var(--border);
+    box-shadow: 3px 3px 0 var(--black);
+}
+
+.section .post:last-child,
+.section .post-full:last-child {
+    border-bottom: none;
 }
 
 /* The gap between two paintings. It starts as a thin black line and parts
@@ -590,10 +581,9 @@ body.no-walker .home-floor {
     .tile-photo .tile-text { padding: 0.5rem 0.7rem; }
     .tile-title, .tile-photo .tile-title { font-size: 0.95rem; }
     .piece-back { padding: 1.25rem 1.25rem 0; }
+    .section-title { margin: 1.5rem 1.25rem 0; }
 
     /* Menu that is easy to hit with a thumb */
-    .dropdown-toggle { font-size: 15px; padding: 0.4rem 0; }
-    .dropdown-menu li { font-size: 16px; padding: 0.7rem 1.1rem; }
 
     /* Home: text and buttons sit near the top, clear of the walker at the bottom */
     .home-card {

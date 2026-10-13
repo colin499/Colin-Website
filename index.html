@@ -7,27 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8fbef06a">
+    <link rel="stylesheet" href="style.css?v=32ea35c7">
 </head>
 <body>
     <header>
-        <a href="#" class="site-title" onclick="selectFilter('home', 'home'); return false;">Brain Food</a>
-        <nav class="dropdown" id="dropdown">
-            <button class="dropdown-toggle" onclick="toggleDropdown()">
-                <span id="dropdown-label">home</span>
-                <svg width="9" height="5" viewBox="0 0 9 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 0L4.5 5L9 0" fill="#111"/>
-                </svg>
-            </button>
-            <ul class="dropdown-menu" id="dropdown-menu">
-                <li onclick="selectFilter('home', 'home')">home</li>
-                <li onclick="selectFilter('painting', 'paintings')">paintings</li>
-                <li onclick="selectFilter('writing', 'writing')">writing</li>
-                <li onclick="selectFilter('projects', 'projects')">projects</li>
-                <li onclick="selectFilter('cha', 'cha')">cha</li>
-                <li onclick="selectFilter('contact', 'contact')">contact</li>
-            </ul>
-        </nav>
+        <a href="#" class="site-title" onclick="goTo('home'); return false;">Brain Food</a>
     </header>
 
     <main id="feed"></main>
@@ -46,8 +30,8 @@
         <button class="lightbox-arrow lightbox-next" onclick="event.stopPropagation(); stepLightbox(1)" aria-label="Next painting">→</button>
     </div>
 
-    <script src="posts.js?v=683c30d3"></script>
+    <script src="posts.js?v=546a6ebd"></script>
     <script src="game.js?v=2ba0bfda"></script>
-    <script src="main.js?v=6a1e693c"></script>
+    <script src="main.js?v=47d4877c"></script>
 </body>
 </html>
