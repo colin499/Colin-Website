@@ -2,9 +2,9 @@
 //
 // The site is a stack of cards, one per part: home (the painting with the title
 // over it), paintings, writing, projects, cha and contact. The buttons float in
-// front of whichever card is showing. Clicking one slides that card up over the
-// current one, which shrinks back behind it. A piece of writing or a project is
-// a card of its own that slides over its section; its back link slides it away.
+// front of whichever card is showing. Clicking one pushes the current card
+// back into the screen while the chosen card comes up from below and settles
+// in front. A piece of writing or a project is a card of its own.
 
 // The runner game hidden between the paintings on the home card (see game.js).
 // Switched off for now: set this to true to bring it back (it also brings back
@@ -18,7 +18,7 @@ const TYPES = { paintings: 'painting', writing: 'writing', projects: 'projects',
 // Sections shown as a grid of squares that each open into one piece.
 const PIECE_SECTIONS = ['writing', 'projects'];
 
-const SLIDE_MS = 450;      // how long a card takes to slide (the same as in style.css)
+const SLIDE_MS = 1000;     // how long a change of card takes (the same as --slide in style.css)
 
 // The card on top: 'home', a section like 'writing', or a piece like 'writing/<slug>'.
 let currentCard = null;
@@ -98,6 +98,18 @@ function renderPost(post) {
         `;
     }
 
+    // Paintings: the whole painting, big, with its title and caption. Click it to see it bigger still.
+    if (post.image) {
+        return `
+            <article class="post post-painting">
+                <div class="post-meta">${meta}</div>
+                <h2 class="post-title">${post.title}</h2>
+                <img class="post-image" src="${post.image}" alt="${post.title}"${sizeAttrs(post)}${post.caption ? ` data-caption="${post.caption.replace(/"/g, '&quot;')}"` : ''} loading="lazy" onclick="openLightbox(this)">
+                ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
+            </article>
+        `;
+    }
+
     return '';
 }
 
@@ -156,7 +168,7 @@ function renderStack() {
     if (GAMES_ON) HomeGames.mount(feed.querySelector('.card-home'));
 }
 
-// One section's card: a heading, then its posts.
+// One section's card.
 function renderSection(name) {
     let body;
     if (name === 'contact') {
@@ -170,20 +182,6 @@ function renderSection(name) {
         const sorted = postsOf(name);
         if (!sorted.length) {
             body = '<div class="empty">nothing here yet.</div>';
-        } else if (name === 'paintings') {
-            // A grid of squares, one per painting. Clicking one shows the whole painting big.
-            body = `
-                <div class="tiles">
-                    ${sorted.map(p => `
-                    <a class="tile tile-photo tile-painting" href="${p.image}" onclick="openLightbox(this.querySelector('img')); return false;">
-                        <img class="tile-image" src="${p.image}" alt="${p.title}"${p.caption ? ` data-caption="${p.caption.replace(/"/g, '&quot;')}"` : ''} loading="lazy">
-                        <span class="tile-text">
-                            <span class="tile-title">${p.title}</span>
-                            <span class="tile-date">${formatDate(p.date)}</span>
-                        </span>
-                    </a>`).join('')}
-                </div>
-            `;
         } else if (PIECE_SECTIONS.includes(name)) {
             // Writing and projects: a grid of squares, one per piece. Clicking a square opens that piece.
             body = `
@@ -206,7 +204,7 @@ function renderSection(name) {
             body = sorted.map(renderPost).join('');
         }
     }
-    return `<section class="card" data-card="${name}"><h2 class="section-title">${name}</h2>${body}</section>`;
+    return `<section class="card" data-card="${name}">${body}</section>`;
 }
 
 // The card for a key. A piece's card is made the first time it is opened and kept.
@@ -227,47 +225,37 @@ function cardFor(key) {
     return card;
 }
 
-// Bring a card to the top. Going forward, it slides up over the current card,
-// which shrinks back behind it. Going back (to home, or from a piece to its
-// section), the current card slides down out of the way instead.
+// The floating button for the card in front (or the section a piece belongs to) is filled in.
+function markCurrent(key) {
+    document.querySelectorAll('.dock a').forEach(a => {
+        a.classList.toggle('is-current', key === a.dataset.section || key.startsWith(a.dataset.section + '/'));
+    });
+}
+
+// Bring a card to the front: the current card is pushed back into the screen
+// while the new one comes up from below and settles over it.
 function showCard(key, animate) {
     const next = cardFor(key) || cardFor('home');
     key = next.dataset.card;
     const prev = currentCard ? cardFor(currentCard) : null;
     if (prev === next) return;
-    const back = key === 'home' || (currentCard && currentCard.startsWith(key + '/'));
     currentCard = key;
 
     document.body.classList.toggle('is-home', key === 'home');
-    document.querySelectorAll('.dock a').forEach(a => {
-        a.classList.toggle('is-current', key === a.dataset.section || key.startsWith(a.dataset.section + '/'));
-    });
+    markCurrent(key);
 
-    // tidy up any card still mid-slide from a quick earlier click
+    // tidy up any card still mid-move from a quick earlier click
     clearTimeout(cardTimer);
-    document.querySelectorAll('.card').forEach(c => { if (c !== next && c !== prev) c.classList.remove('is-active', 'is-behind', 'is-leaving'); });
+    document.querySelectorAll('.card').forEach(c => { if (c !== next && c !== prev) c.classList.remove('is-active', 'is-away'); });
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!prev || !animate || reduce) {
-        if (prev) prev.classList.remove('is-active', 'is-behind', 'is-leaving');
-        next.classList.remove('is-behind', 'is-leaving');
-        next.classList.add('is-active');
-        return;
-    }
-    if (back) {
-        next.classList.add('is-behind', 'no-anim');   // start from behind, without animating there
-        void next.offsetWidth;
-        next.classList.remove('is-behind', 'no-anim');
-        next.classList.add('is-active');
-        prev.classList.remove('is-active');
-        prev.classList.add('is-leaving');
-        cardTimer = setTimeout(() => prev.classList.remove('is-leaving'), SLIDE_MS);
-    } else {
-        next.classList.remove('is-leaving');
-        next.classList.add('is-active');
-        prev.classList.remove('is-active');
-        prev.classList.add('is-behind');
-        cardTimer = setTimeout(() => prev.classList.remove('is-behind'), SLIDE_MS);
+    next.classList.remove('is-away');
+    next.classList.add('is-active');
+    if (!prev) return;
+    prev.classList.remove('is-active');
+    if (animate && !reduce) {
+        prev.classList.add('is-away');
+        cardTimer = setTimeout(() => prev.classList.remove('is-away'), SLIDE_MS);
     }
 }
 
@@ -283,7 +271,7 @@ let lightboxImages = [];
 let lightboxIndex = 0;
 
 function openLightbox(img) {
-    lightboxImages = [...document.querySelectorAll('#feed .tile-painting img')];
+    lightboxImages = [...document.querySelectorAll('[data-card="paintings"] .post-image')];
     lightboxIndex = Math.max(0, lightboxImages.indexOf(img));
     showLightboxImage();
     document.getElementById('lightbox').classList.add('open');

@@ -8,6 +8,7 @@
     --paper: #f6cfc6;   /* page colour: pale rose blush, like the pinks in the paintings */
     --black: #111;
     --muted: rgba(0, 0, 0, 0.4);
+    --rose: #e5a89b;    /* the writing squares: a deeper pink than the page, so they stand out */
     --border: 2px solid #111;
 }
 
@@ -233,6 +234,12 @@ a:hover {
     box-shadow: none;
 }
 
+/* The writing squares are a deeper pink than the page, so they stand out. */
+[data-card="writing"] .tile,
+[data-card="writing"] .tile-photo .tile-text {
+    background-color: var(--rose);
+}
+
 .piece-back {
     padding: 1.5rem 2rem 0;
 }
@@ -341,13 +348,16 @@ a:hover {
 
 /* ---------- The stack of cards ----------
    Each part of the site is a card that fills the screen and scrolls on its
-   own; the page itself never scrolls. The card on top is .is-active. A new
-   card slides up over the old one (.is-behind, shrinking back a little), or
-   the old one slides down away (.is-leaving) when going back. */
+   own; the page itself never scrolls. The card in front is .is-active. When
+   you change cards, the old one is pushed back into the screen, tilting away
+   (.is-away), while the new one comes up from below the bottom edge and
+   settles in front. */
 
 :root {
     --panel-h: max(420px, calc(100svh - var(--header-h, 77px)));
-    --slide: 0.45s;                   /* the same as SLIDE_MS in main.js */
+    --slide: 1s;                      /* the same as SLIDE_MS in main.js */
+    --ease-in-front: cubic-bezier(0.25, 0.9, 0.3, 1);   /* how a card settles in front */
+    --ease-to-back: cubic-bezier(0.4, 0, 0.6, 1);       /* how a card goes to the back */
 }
 
 html, body {
@@ -358,6 +368,8 @@ html, body {
 #feed {
     position: fixed;
     inset: 0;
+    perspective: 900px;               /* so a card pushed back really looks further away (smaller = more dramatic) */
+    perspective-origin: 50% 40%;
 }
 
 .card {
@@ -369,40 +381,33 @@ html, body {
     background-color: var(--paper);
     padding-top: var(--header-h, 77px);   /* under the top bar */
     padding-bottom: 7rem;                 /* clear of the floating buttons */
-    box-shadow: 0 -2px 0 var(--black);    /* the card's top edge, seen as it slides up */
+    box-shadow: 0 0 0 2px var(--black), 0 -12px 40px rgba(0, 0, 0, 0.25);   /* the card's edge, seen while it moves */
     visibility: hidden;
-    transform: translateY(100%);
+    transform: translate3d(0, 115%, -500px) rotateX(-28deg);   /* waiting below the bottom edge, tipped back */
+    transform-origin: 50% 50%;
+    backface-visibility: hidden;
 }
 
 .card-home {
     padding: 0;
-    box-shadow: none;
 }
 
+/* Coming up from below into the front. */
 .card.is-active {
     visibility: visible;
     transform: none;
     z-index: 2;
-    transition: transform var(--slide) cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform var(--slide) var(--ease-in-front);
 }
 
-.card.is-behind {
+/* Pushed back into the screen, tilting away, as the new card covers it. */
+.card.is-away {
     visibility: visible;
-    transform: scale(0.96);
-    filter: brightness(0.75);
+    transform: translate3d(0, -12%, -1600px) rotateX(32deg);
+    filter: brightness(0.5);
     z-index: 1;
-    transition: transform var(--slide) cubic-bezier(0.2, 0.8, 0.2, 1), filter var(--slide);
-}
-
-.card.is-leaving {
-    visibility: visible;
-    transform: translateY(100%);
-    z-index: 3;
-    transition: transform var(--slide) cubic-bezier(0.4, 0, 0.8, 0.4);
-}
-
-.card.no-anim {
-    transition: none !important;
+    pointer-events: none;
+    transition: transform var(--slide) var(--ease-to-back), filter var(--slide) ease-in;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -469,21 +474,17 @@ body.is-home .site-title,
 
 /* ---------- Inside a section's card ---------- */
 
-/* A painting's square shows it big when clicked. */
-.tile-painting {
-    cursor: zoom-in;
+/* Paintings, one under the other, each as big as the card allows. */
+.post-painting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
-/* The section's name, styled like the floating button that leads to it. */
-.section-title {
-    display: inline-block;
-    margin: 2rem 2rem 0;
-    padding: 0.55rem 1.2rem;
-    font-size: 16px;
-    font-weight: 500;
-    background-color: var(--paper);
-    border: var(--border);
-    box-shadow: 3px 3px 0 var(--black);
+.post-painting .post-image {
+    width: 800px;
+    cursor: zoom-in;
 }
 
 .section .post:last-child,
@@ -630,7 +631,6 @@ body.no-walker .home-floor {
     .tile-photo .tile-text { padding: 0.5rem 0.7rem; }
     .tile-title, .tile-photo .tile-title { font-size: 0.95rem; }
     .piece-back { padding: 1.25rem 1.25rem 0; }
-    .section-title { margin: 1.5rem 1.25rem 0; }
 
     /* Home: the text sits near the top; the buttons float along the bottom */
     .home-card {
