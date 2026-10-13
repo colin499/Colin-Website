@@ -142,6 +142,9 @@ button, with no more file editing at all.
 
 ## The bouncing photo at the bottom
 
+**Currently switched off.** To bring it back, open `main.js`, find the line
+`const WALKER_ON = false;` and change `false` to `true`, then rebuild.
+
 If you move the cursor near it, it pounces at the cursor until you back off.
 
 That's `assets/colin-and-cat.png`. To swap it, replace that file with

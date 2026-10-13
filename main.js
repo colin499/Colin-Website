@@ -281,7 +281,16 @@ document.addEventListener('keydown', function (e) {
 
 // ---------- walker: pounces at the cursor when it gets close ----------
 
-const walker = document.getElementById('walker');
+// The bouncing photo at the bottom of the screen, with its pounce and cat noise.
+// Switched off for now: set this to true to bring it all back.
+const WALKER_ON = false;
+
+const walker = WALKER_ON ? document.getElementById('walker') : null;
+if (!WALKER_ON) {
+    const el = document.getElementById('walker');
+    if (el) el.remove();
+    document.body.classList.add('no-walker');
+}
 const walkerImg = walker ? walker.querySelector('img') : null;
 const POUNCE_RANGE = 150;   // px from the walker's centre that triggers the attack
 const POUNCE_REACH = 70;    // how far it lunges toward the cursor
@@ -383,7 +392,7 @@ function stopAttack() {
     attackSound.pause();
 }
 
-setInterval(checkWalker, 60);
+if (walker) setInterval(checkWalker, 60);
 
 // The home card is held in place just below the header, so CSS needs its height.
 function setHeaderHeight() {
