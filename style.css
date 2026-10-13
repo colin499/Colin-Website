@@ -27,10 +27,12 @@ header {
     align-items: baseline;
     padding: 1.5rem 2rem;
     border-bottom: var(--border);
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     background-color: var(--paper);
-    z-index: 10;
+    z-index: 20;
 }
 
 .site-title {
@@ -337,30 +339,84 @@ a:hover {
     margin-top: 2em;
 }
 
-/* Home page: the paintings run the full width of the screen and stack
-   top to bottom, so you scroll down over them. */
+/* ---------- The stack of cards ----------
+   Each part of the site is a card that fills the screen and scrolls on its
+   own; the page itself never scrolls. The card on top is .is-active. A new
+   card slides up over the old one (.is-behind, shrinking back a little), or
+   the old one slides down away (.is-leaving) when going back. */
 
 :root {
     --panel-h: max(420px, calc(100svh - var(--header-h, 77px)));
+    --slide: 0.45s;                   /* the same as SLIDE_MS in main.js */
 }
 
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    min-height: 100svh;
+html, body {
+    height: 100%;
+    overflow: hidden;
 }
 
 #feed {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    position: fixed;
+    inset: 0;
 }
 
+.card {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background-color: var(--paper);
+    padding-top: var(--header-h, 77px);   /* under the top bar */
+    padding-bottom: 7rem;                 /* clear of the floating buttons */
+    box-shadow: 0 -2px 0 var(--black);    /* the card's top edge, seen as it slides up */
+    visibility: hidden;
+    transform: translateY(100%);
+}
+
+.card-home {
+    padding: 0;
+    box-shadow: none;
+}
+
+.card.is-active {
+    visibility: visible;
+    transform: none;
+    z-index: 2;
+    transition: transform var(--slide) cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.card.is-behind {
+    visibility: visible;
+    transform: scale(0.96);
+    filter: brightness(0.75);
+    z-index: 1;
+    transition: transform var(--slide) cubic-bezier(0.2, 0.8, 0.2, 1), filter var(--slide);
+}
+
+.card.is-leaving {
+    visibility: visible;
+    transform: translateY(100%);
+    z-index: 3;
+    transition: transform var(--slide) cubic-bezier(0.4, 0, 0.8, 0.4);
+}
+
+.card.no-anim {
+    transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card { transition: none !important; }
+}
+
+/* The home card: the painting fills it, with the title over it. */
 .home {
-    flex: 1;
     position: relative;
     background-color: #8a6f2c;
+}
+
+.home-one-screen {
+    height: 100%;
 }
 
 /* No top bar over the backdrop: the title floats on the painting, which starts
@@ -376,17 +432,6 @@ body.is-home header {
 
 body.is-home .site-title {
     pointer-events: auto;
-}
-
-/* Once you scroll past the backdrop, the bar gets its paper background back. */
-body.is-home header.solid {
-    background-color: var(--paper);
-    border-bottom: var(--border);
-    pointer-events: auto;
-}
-
-body.is-home header.solid .site-title {
-    text-shadow: none;
 }
 
 /* Home page text sits straight on the paintings, with no box. A soft glow
@@ -409,34 +454,27 @@ body.is-home .site-title,
     height: auto;
 }
 
-/* With the game off, only the first photo is shown, filling one screen as the backdrop. */
+/* With the game off, only the first photo is shown, filling the card as the backdrop. */
 .home-one-screen .home-painting {
-    height: var(--panel-h);
+    height: 100%;
     object-fit: cover;
 }
 
-/* The card then simply sits on the backdrop and scrolls away with it,
-   instead of staying put while a stack of paintings goes past. */
 .home-one-screen .home-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    inset: 0;
+    height: auto;
     margin-bottom: 0;
 }
 
-/* ---------- The sections down the long page ---------- */
-
-.section {
-    border-top: var(--border);
-}
+/* ---------- Inside a section's card ---------- */
 
 /* A painting's square shows it big when clicked. */
 .tile-painting {
     cursor: zoom-in;
 }
 
-/* The section's name, styled like the button that leads to it. */
+/* The section's name, styled like the floating button that leads to it. */
 .section-title {
     display: inline-block;
     margin: 2rem 2rem 0;
@@ -541,30 +579,41 @@ body.no-walker .home-floor {
     margin-bottom: 1.5rem;
 }
 
-.home-links {
-    list-style: none;
+/* ---------- The floating buttons ----------
+   One per section, in front of every card, so you can hop between them.
+   The one for the card on top is filled in. */
+
+.dock {
+    position: fixed;
+    left: 2rem;
+    bottom: 2rem;
+    z-index: 30;
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
+    max-width: calc(100% - 4rem);
 }
 
-.home-links a {
+.dock a {
     display: inline-block;
     padding: 0.55rem 1.2rem;
     font-size: 16px;
+    font-weight: 500;
     background-color: var(--paper);
     border: var(--border);
     box-shadow: 3px 3px 0 var(--black);
-    text-shadow: none;
+    text-decoration: none;
+    color: var(--black);
 }
 
-.home-links a:hover {
+.dock a:hover,
+.dock a.is-current {
     background-color: var(--black);
     color: var(--paper);
     opacity: 1;
 }
 
-.home-links a:active {
+.dock a:active {
     transform: translate(3px, 3px);
     box-shadow: none;
 }
@@ -583,9 +632,7 @@ body.no-walker .home-floor {
     .piece-back { padding: 1.25rem 1.25rem 0; }
     .section-title { margin: 1.5rem 1.25rem 0; }
 
-    /* Menu that is easy to hit with a thumb */
-
-    /* Home: text and buttons sit near the top, clear of the walker at the bottom */
+    /* Home: the text sits near the top; the buttons float along the bottom */
     .home-card {
         top: 4.5rem;
         left: 1.25rem;
@@ -598,6 +645,15 @@ body.no-walker .home-floor {
     .home-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
     .home-floor { height: 170px; }
     .home-text { margin-bottom: 1rem; }
+    .dock {
+        left: 1.25rem;
+        right: 1.25rem;
+        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        max-width: none;
+        gap: 0.5rem;
+    }
+    .dock a { padding: 0.5rem 0.9rem; font-size: 15px; }
+    .card { padding-bottom: 8rem; }
 
     /* Lightbox: arrows along the bottom, clear of the picture */
     #lightbox-img { max-width: 92vw; max-height: 72vh; }

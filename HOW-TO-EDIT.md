@@ -19,9 +19,9 @@ italic and bold rules as writing. Rebuild.
 
 ## Change the home page background
 
-The site is one long page: a painting fills the first screen with the title
-and buttons over it, and the buttons scroll down to the sections below
-(paintings, writing, projects, cha, contact).
+The site is a stack of cards: a painting fills the home card with the title
+over it, and the buttons floating along the bottom slide the other cards
+(paintings, writing, projects, cha, contact) up over it.
 
 The backdrop is the first photo, by file name, in `content/background/`.
 Crop the photo to just the painting before adding it.

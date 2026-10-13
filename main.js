@@ -1,25 +1,28 @@
 // Site logic. Posts come from posts.js, which is generated from the content/ folder by build.js.
 //
-// The site is one long page: the first painting as a backdrop with the title and
-// buttons over it, then a section for each part (paintings, writing, projects,
-// cha, contact) one after the other below. The buttons scroll down to the
-// sections. A piece of writing or a project opens on a page of its own, with a
-// link back to its section.
+// The site is a stack of cards, one per part: home (the painting with the title
+// over it), paintings, writing, projects, cha and contact. The buttons float in
+// front of whichever card is showing. Clicking one slides that card up over the
+// current one, which shrinks back behind it. A piece of writing or a project is
+// a card of its own that slides over its section; its back link slides it away.
 
-// The runner game hidden between the paintings on the home page (see game.js).
+// The runner game hidden between the paintings on the home card (see game.js).
 // Switched off for now: set this to true to bring it back (it also brings back
 // the full stack of background paintings, since the levels sit between them).
 const GAMES_ON = false;
 let allPosts = [...posts];
 
-// The sections, in the order they appear down the page, and the kind of post each shows.
+// The sections, in button order, and the kind of post each shows.
 const SECTIONS = ['paintings', 'writing', 'projects', 'cha', 'contact'];
 const TYPES = { paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha' };
 // Sections shown as a grid of squares that each open into one piece.
 const PIECE_SECTIONS = ['writing', 'projects'];
 
-// What is on screen: the long page ('home') or a single piece ('piece').
-let view = null;
+const SLIDE_MS = 450;      // how long a card takes to slide (the same as in style.css)
+
+// The card on top: 'home', a section like 'writing', or a piece like 'writing/<slug>'.
+let currentCard = null;
+let cardTimer = 0;
 
 function pieceSlug(post) {
     return post.title.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled';
@@ -29,46 +32,31 @@ function postsOf(section) {
     return allPosts.filter(p => p.type === TYPES[section]).sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-// Scrolls the long page to a section, or to the top for 'home'. The top bar is
-// fixed over the page, so the section's top lands just under it.
-function scrollToSection(name, smooth) {
-    const behavior = smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto';
-    if (name === 'home') { window.scrollTo({ top: 0, behavior }); return; }
-    const el = document.getElementById('section-' + name);
-    if (!el) return;
-    const bar = document.querySelector('header').offsetHeight;
-    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - bar, behavior });
+// Which card an address means: '' is home, '#writing' a section, '#writing/<slug>' a piece.
+function keyFromHash(hash) {
+    const [name, slug] = decodeURIComponent(hash.replace(/^#/, '')).split('/');
+    if (slug && PIECE_SECTIONS.includes(name)) return name + '/' + slug;
+    return SECTIONS.includes(name) ? name : 'home';
 }
 
-// A button on the home card, or the site title: go to that part of the long page.
-// The address keeps the section (index.html#writing), so reloading and the back button work.
+// A floating button, or the site title: bring that card to the top.
+// The address keeps the card (index.html#writing), so reloading and the back button work.
 function goTo(name) {
-    const hash = name === 'home' ? '' : '#' + name;
-    if (location.hash !== hash) history.pushState(null, '', hash || location.pathname + location.search);
-    if (view !== 'home') {
-        renderHome();
-        scrollToSection(name, false);
-    } else {
-        scrollToSection(name, true);
-    }
+    navigate(name === 'home' ? '' : '#' + name);
 }
 
 // Open one piece (of writing, or one project) from its grid.
 function openPiece(section, slug) {
-    history.pushState(null, '', '#' + section + '/' + slug);
-    renderPiece(section, slug);
+    navigate('#' + section + '/' + slug);
 }
 
-// Show whatever the address says: a section of the long page, or one piece.
-function showFromAddress(initial) {
-    const [name, slug] = decodeURIComponent(location.hash.slice(1)).split('/');
-    if (slug && PIECE_SECTIONS.includes(name)) { renderPiece(name, slug); return; }
-    if (view !== 'home') renderHome();
-    // On a plain reload with no section in the address, the browser puts the scroll back itself.
-    if (name || !initial) scrollToSection(SECTIONS.includes(name) ? name : 'home', false);
+function navigate(hash) {
+    if (location.hash !== hash) history.pushState(null, '', hash || location.pathname + location.search);
+    showCard(keyFromHash(hash), true);
 }
 
-window.addEventListener('popstate', () => showFromAddress(false));
+window.addEventListener('popstate', () => showCard(keyFromHash(location.hash), true));
+
 
 
 function formatDate(dateStr) {
@@ -136,12 +124,10 @@ function playButtonSound(name) {
     sound.audio.play().catch(() => {});
 }
 
-// ---------- the long page ----------
+// ---------- the stack of cards ----------
 
-function renderHome() {
-    view = 'home';
-    document.body.classList.add('is-home');
-    setHeaderHeight();
+function renderStack() {
+    const feed = document.getElementById('feed');
     HomeGames.unmount();
 
     // The backdrop: the first photo in content/background/. With the game on, every
@@ -150,30 +136,27 @@ function renderHome() {
         ? backgrounds
         : [{ image: 'assets/home-painting.jpg', title: '' }];
     const panels = GAMES_ON ? all : all.slice(0, 1);
-    const feed = document.getElementById('feed');
     feed.innerHTML = `
-        <section class="home${GAMES_ON ? '' : ' home-one-screen'}">
-            <div class="home-overlay">
-            <div class="home-card">
-                <h1 class="home-title">Brain Food</h1>
-                <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
-                <ul class="home-links">
-                    ${SECTIONS.map(s => `<li><a href="#${s}" onclick="playButtonSound('${s}'); goTo('${s}'); return false;">${s}</a></li>`).join('')}
-                </ul>
+        <section class="card card-home" data-card="home">
+            <div class="home${GAMES_ON ? '' : ' home-one-screen'}">
+                <div class="home-overlay">
+                <div class="home-card">
+                    <h1 class="home-title">Brain Food</h1>
+                    <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
+                </div>
+                </div>
+                ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${sizeAttrs(p)}${i ? ' loading="lazy"' : ''}>`)
+                    .join(GAMES_ON ? '<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>' : '')}
+                ${GAMES_ON ? '<div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>' : ''}
+                ${GAMES_ON || WALKER_ON ? '<div class="home-floor"></div>' : ''}
             </div>
-            </div>
-            ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${sizeAttrs(p)}${i ? ' loading="lazy"' : ''}>`)
-                .join(GAMES_ON ? '<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>' : '')}
-            ${GAMES_ON ? '<div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>' : ''}
-            ${GAMES_ON || WALKER_ON ? '<div class="home-floor"></div>' : ''}
         </section>
         ${SECTIONS.map(renderSection).join('')}
     `;
-    if (GAMES_ON) HomeGames.mount(feed);
-    updateHeader();
+    if (GAMES_ON) HomeGames.mount(feed.querySelector('.card-home'));
 }
 
-// One section of the long page: a heading, then its posts.
+// One section's card: a heading, then its posts.
 function renderSection(name) {
     let body;
     if (name === 'contact') {
@@ -223,47 +206,76 @@ function renderSection(name) {
             body = sorted.map(renderPost).join('');
         }
     }
-    return `<section class="section" id="section-${name}"><h2 class="section-title">${name}</h2>${body}</section>`;
+    return `<section class="card" data-card="${name}"><h2 class="section-title">${name}</h2>${body}</section>`;
 }
 
-// One piece of writing or one project, on a page of its own.
-function renderPiece(section, slug) {
-    const piece = postsOf(section).find(p => pieceSlug(p) === slug);
-    if (!piece) { renderHome(); scrollToSection(section, false); return; }
-    view = 'piece';
-    document.body.classList.remove('is-home');
-    setHeaderHeight();
-    updateHeader();
-    HomeGames.unmount();
-    document.getElementById('feed').innerHTML = `
+// The card for a key. A piece's card is made the first time it is opened and kept.
+function cardFor(key) {
+    const found = document.querySelector(`.card[data-card="${CSS.escape(key)}"]`);
+    if (found) return found;
+    const [section, slug] = key.split('/');
+    const piece = slug && postsOf(section).find(p => pieceSlug(p) === slug);
+    if (!piece) return null;
+    const card = document.createElement('section');
+    card.className = 'card card-piece';
+    card.dataset.card = key;
+    card.innerHTML = `
         <div class="piece-back"><a href="#${section}" onclick="goTo('${section}'); return false;">← all ${section}</a></div>
         ${renderPost(piece)}
     `;
-    window.scrollTo(0, 0);
+    document.getElementById('feed').appendChild(card);
+    return card;
 }
 
-// Over the backdrop the top bar is see-through, with the title floating on the
-// painting. Once you scroll past the backdrop it gets its paper background.
-function updateHeader() {
-    const header = document.querySelector('header');
-    if (view !== 'home') { header.classList.remove('solid'); return; }
-    const backdrop = document.querySelector('.home');
-    header.classList.toggle('solid', !backdrop || backdrop.getBoundingClientRect().bottom <= header.offsetHeight);
+// Bring a card to the top. Going forward, it slides up over the current card,
+// which shrinks back behind it. Going back (to home, or from a piece to its
+// section), the current card slides down out of the way instead.
+function showCard(key, animate) {
+    const next = cardFor(key) || cardFor('home');
+    key = next.dataset.card;
+    const prev = currentCard ? cardFor(currentCard) : null;
+    if (prev === next) return;
+    const back = key === 'home' || (currentCard && currentCard.startsWith(key + '/'));
+    currentCard = key;
+
+    document.body.classList.toggle('is-home', key === 'home');
+    document.querySelectorAll('.dock a').forEach(a => {
+        a.classList.toggle('is-current', key === a.dataset.section || key.startsWith(a.dataset.section + '/'));
+    });
+
+    // tidy up any card still mid-slide from a quick earlier click
+    clearTimeout(cardTimer);
+    document.querySelectorAll('.card').forEach(c => { if (c !== next && c !== prev) c.classList.remove('is-active', 'is-behind', 'is-leaving'); });
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!prev || !animate || reduce) {
+        if (prev) prev.classList.remove('is-active', 'is-behind', 'is-leaving');
+        next.classList.remove('is-behind', 'is-leaving');
+        next.classList.add('is-active');
+        return;
+    }
+    if (back) {
+        next.classList.add('is-behind', 'no-anim');   // start from behind, without animating there
+        void next.offsetWidth;
+        next.classList.remove('is-behind', 'no-anim');
+        next.classList.add('is-active');
+        prev.classList.remove('is-active');
+        prev.classList.add('is-leaving');
+        cardTimer = setTimeout(() => prev.classList.remove('is-leaving'), SLIDE_MS);
+    } else {
+        next.classList.remove('is-leaving');
+        next.classList.add('is-active');
+        prev.classList.remove('is-active');
+        prev.classList.add('is-behind');
+        cardTimer = setTimeout(() => prev.classList.remove('is-behind'), SLIDE_MS);
+    }
 }
 
-let headerCheckQueued = false;
-window.addEventListener('scroll', () => {
-    if (headerCheckQueued) return;
-    headerCheckQueued = true;
-    requestAnimationFrame(() => { headerCheckQueued = false; updateHeader(); });
-}, { passive: true });
-
-// width and height for a photo, when the build recorded them, so the page
+// width and height for a photo, when the build recorded them, so a card
 // doesn't jump about while photos load.
 function sizeAttrs(p) {
     return p.width && p.height ? ` width="${p.width}" height="${p.height}"` : '';
 }
-
 
 // The lightbox shows one painting big. The arrows (or the keyboard arrow
 // keys, or swiping on a phone) step through every painting on the page.
@@ -435,10 +447,9 @@ function stopAttack() {
 
 if (walker) setInterval(checkWalker, 60);
 
-// The home card is held in place just below the header, so CSS needs its height.
+// The cards leave room under the top bar, so CSS needs its height.
 function setHeaderHeight() {
-    const h = document.body.classList.contains('is-home') ? 0 : document.querySelector('header').offsetHeight;
-    document.documentElement.style.setProperty('--header-h', h + 'px');
+    document.documentElement.style.setProperty('--header-h', document.querySelector('header').offsetHeight + 'px');
 }
 
 window.addEventListener('resize', setHeaderHeight);
@@ -447,4 +458,5 @@ setHeaderHeight();
 
 // Substack posts are already in posts.js (the build downloads them).
 allPosts = posts;
-showFromAddress(true);
+renderStack();
+showCard(keyFromHash(location.hash), false);

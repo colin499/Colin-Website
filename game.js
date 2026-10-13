@@ -66,6 +66,7 @@ const HomeGames = (() => {
 
     let games = [];
     let listening = false;
+    let scroller = window;      // what scrolls: the home card, or the page
     let checkQueued = false;
 
     // How many levels have been beaten, in order. Level n is open once n levels are beaten.
@@ -1039,7 +1040,8 @@ const HomeGames = (() => {
         if (!games.length) return;
         container.querySelectorAll('.home-painting').forEach(img => img.addEventListener('load', queueCheck));
         if (!listening) {
-            window.addEventListener('scroll', queueCheck, { passive: true });
+            scroller = container.closest('.card') || window;
+            scroller.addEventListener('scroll', queueCheck, { passive: true });
             window.addEventListener('resize', onResize);
             document.addEventListener('keydown', onKey);
             document.addEventListener('keyup', onKeyUp);
@@ -1059,7 +1061,7 @@ const HomeGames = (() => {
         document.body.classList.remove('game-playing');
         document.documentElement.style.overflowAnchor = '';
         if (listening) {
-            window.removeEventListener('scroll', queueCheck);
+            scroller.removeEventListener('scroll', queueCheck);
             window.removeEventListener('resize', onResize);
             document.removeEventListener('keydown', onKey);
             document.removeEventListener('keyup', onKeyUp);

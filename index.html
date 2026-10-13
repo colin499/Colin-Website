@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=32ea35c7">
+    <link rel="stylesheet" href="style.css?v=fc4ebdb2">
 </head>
 <body>
     <header>
@@ -15,6 +15,15 @@
     </header>
 
     <main id="feed"></main>
+
+    <!-- The buttons float in front of every card. -->
+    <nav class="dock" aria-label="Sections">
+        <a href="#paintings" data-section="paintings" onclick="playButtonSound('paintings'); goTo('paintings'); return false;">paintings</a>
+        <a href="#writing" data-section="writing" onclick="playButtonSound('writing'); goTo('writing'); return false;">writing</a>
+        <a href="#projects" data-section="projects" onclick="playButtonSound('projects'); goTo('projects'); return false;">projects</a>
+        <a href="#cha" data-section="cha" onclick="playButtonSound('cha'); goTo('cha'); return false;">cha</a>
+        <a href="#contact" data-section="contact" onclick="playButtonSound('contact'); goTo('contact'); return false;">contact</a>
+    </nav>
 
     <div id="walker" aria-hidden="true">
         <img src="assets/colin-and-cat.png" alt="">
@@ -31,7 +40,7 @@
     </div>
 
     <script src="posts.js?v=546a6ebd"></script>
-    <script src="game.js?v=2ba0bfda"></script>
-    <script src="main.js?v=47d4877c"></script>
+    <script src="game.js?v=f5f3f286"></script>
+    <script src="main.js?v=ee30aa84"></script>
 </body>
 </html>
