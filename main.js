@@ -7,8 +7,7 @@
 // in front. A piece of writing or a project is a card of its own.
 
 // The runner game hidden between the paintings on the home card (see game.js).
-// Switched off for now: set this to true to bring it back (it also brings back
-// the full stack of background paintings, since the levels sit between them).
+// Switched off for now: set this to true to bring it back.
 const GAMES_ON = false;
 let allPosts = [...posts];
 
@@ -142,15 +141,14 @@ function renderStack() {
     const feed = document.getElementById('feed');
     HomeGames.unmount();
 
-    // The backdrop: the first photo in content/background/. With the game on, every
-    // photo is stacked top to bottom with a level in each gap, as it used to be.
-    const all = (typeof backgrounds !== 'undefined' && backgrounds.length)
+    // The photos in content/background/, stacked top to bottom: you scroll down
+    // over them while the title stays put. With the game on, a level sits in each gap.
+    const panels = (typeof backgrounds !== 'undefined' && backgrounds.length)
         ? backgrounds
         : [{ image: 'assets/home-painting.jpg', title: '' }];
-    const panels = GAMES_ON ? all : all.slice(0, 1);
     feed.innerHTML = `
         <section class="card card-home" data-card="home">
-            <div class="home${GAMES_ON ? '' : ' home-one-screen'}">
+            <div class="home">
                 <div class="home-overlay">
                 <div class="home-card">
                     <h1 class="home-title">Brain Food</h1>

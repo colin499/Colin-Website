@@ -19,18 +19,19 @@ italic and bold rules as writing. Rebuild.
 
 ## Change the home page background
 
-The site is a stack of cards: a painting fills the home card with the title
-over it, and the buttons floating along the bottom slide the other cards
-(paintings, writing, projects, cha, contact) up over it.
+The site is a stack of cards: the home card with the title over the
+paintings, and the buttons floating along the bottom bring the other cards
+(paintings, writing, projects, cha, contact) up in front of it.
 
-The backdrop is the first photo, by file name, in `content/background/`.
+The home card's background is made of the photos in `content/background/`.
+Each one is shown whole, as wide as the screen, and they stack top to
+bottom, so scrolling down the home card scrolls over them one after another.
 Crop the photo to just the painting before adding it.
 
-- To change it, drop the new photo in and give it a name that sorts first,
-  for example `1-gold.jpeg`. iPhone photos (`.heic`) are fine.
-- The other photos in the folder are only used when the game is switched on
-  (see "The game between the paintings"), when they stack top to bottom in
-  file-name order with a level in each gap.
+- To add one, drop the photo into `content/background/` and rebuild.
+  iPhone photos (`.heic`) are fine.
+- They go in file-name order: the first name is at the top. To reorder,
+  rename them, for example `1-gold.jpeg`, `2-apple.jpeg`.
 - To remove one, delete it from the folder and rebuild. To keep it around
   without showing it, move it into `content/background/not-shown/` instead.
 
@@ -151,8 +152,7 @@ between the paintings, with a final level after the last one.
 
 **Currently switched off.** To bring it back, open `main.js`, find the line
 `const GAMES_ON = false;` near the top and change `false` to `true`, then
-rebuild. The game itself lives in `game.js`. With it on, every photo in
-`content/background/` is shown again, stacked top to bottom.
+rebuild. The game itself lives in `game.js`.
 
 ## The bouncing photo at the bottom
 

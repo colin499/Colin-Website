@@ -420,8 +420,10 @@ html, body {
     background-color: #8a6f2c;
 }
 
-.home-one-screen {
-    height: 100%;
+/* On the home card the bar is see-through, so the painting and the card sit
+   right at the top of the screen. */
+.card-home {
+    --panel-h: max(420px, 100svh);
 }
 
 /* No top bar over the backdrop: the title floats on the painting, which starts
@@ -457,19 +459,6 @@ body.is-home .site-title,
     display: block;
     width: 100%;
     height: auto;
-}
-
-/* With the game off, only the first photo is shown, filling the card as the backdrop. */
-.home-one-screen .home-painting {
-    height: 100%;
-    object-fit: cover;
-}
-
-.home-one-screen .home-overlay {
-    position: absolute;
-    inset: 0;
-    height: auto;
-    margin-bottom: 0;
 }
 
 /* ---------- Inside a section's card ---------- */
@@ -551,7 +540,7 @@ body.no-walker .home-floor {
 /* Holds the card in place on screen while the paintings scroll behind it. */
 .home-overlay {
     position: sticky;
-    top: var(--header-h, 77px);
+    top: 0;
     height: var(--panel-h);
     margin-bottom: calc(-1 * var(--panel-h));
     z-index: 1;
@@ -654,6 +643,7 @@ body.no-walker .home-floor {
     }
     .dock a { padding: 0.5rem 0.9rem; font-size: 15px; }
     .card { padding-bottom: 8rem; }
+    .card-home { padding-bottom: 0; }
 
     /* Lightbox: arrows along the bottom, clear of the picture */
     #lightbox-img { max-width: 92vw; max-height: 72vh; }

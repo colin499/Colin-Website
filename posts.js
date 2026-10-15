@@ -28,12 +28,6 @@ const backgrounds = [
         "title": "4 IMG 8568",
         "width": 1800,
         "height": 2400
-    },
-    {
-        "image": "assets/background/6-IMG_8739.jpg",
-        "title": "6 IMG 8739",
-        "width": 2400,
-        "height": 1800
     }
 ];
 
