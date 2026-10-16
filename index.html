@@ -7,23 +7,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=33447e12">
+    <link rel="stylesheet" href="style.css?v=466d3c32">
 </head>
 <body>
     <header>
-        <a href="#" class="site-title" onclick="goTo('home'); return false;">Brain Food</a>
+        <a href="#" class="site-title" onclick="selectFilter('home', 'home'); return false;">Brain Food</a>
+        <nav class="dropdown" id="dropdown">
+            <button class="dropdown-toggle" onclick="toggleDropdown()">
+                <span id="dropdown-label">home</span>
+                <svg width="9" height="5" viewBox="0 0 9 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 0L4.5 5L9 0" fill="#111"/>
+                </svg>
+            </button>
+            <ul class="dropdown-menu" id="dropdown-menu">
+                <li onclick="selectFilter('home', 'home')">home</li>
+                <li onclick="selectFilter('painting', 'paintings')">paintings</li>
+                <li onclick="selectFilter('writing', 'writing')">writing</li>
+                <li onclick="selectFilter('projects', 'projects')">projects</li>
+                <li onclick="selectFilter('cha', 'cha')">cha</li>
+                <li onclick="selectFilter('contact', 'contact')">contact</li>
+            </ul>
+        </nav>
     </header>
 
     <main id="feed"></main>
-
-    <!-- The buttons float in front of every card. -->
-    <nav class="dock" aria-label="Sections">
-        <a href="#paintings" data-section="paintings" onclick="playButtonSound('paintings'); goTo('paintings'); return false;">paintings</a>
-        <a href="#writing" data-section="writing" onclick="playButtonSound('writing'); goTo('writing'); return false;">writing</a>
-        <a href="#projects" data-section="projects" onclick="playButtonSound('projects'); goTo('projects'); return false;">projects</a>
-        <a href="#cha" data-section="cha" onclick="playButtonSound('cha'); goTo('cha'); return false;">cha</a>
-        <a href="#contact" data-section="contact" onclick="playButtonSound('contact'); goTo('contact'); return false;">contact</a>
-    </nav>
 
     <div id="walker" aria-hidden="true">
         <img src="assets/colin-and-cat.png" alt="">
@@ -40,7 +47,7 @@
     </div>
 
     <script src="posts.js?v=d18bb220"></script>
-    <script src="game.js?v=f5f3f286"></script>
-    <script src="main.js?v=71305d4b"></script>
+    <script src="game.js?v=2ba0bfda"></script>
+    <script src="main.js?v=a9e3aaeb"></script>
 </body>
 </html>

@@ -19,13 +19,9 @@ italic and bold rules as writing. Rebuild.
 
 ## Change the home page background
 
-The site is a stack of cards: the home card with the title over the
-paintings, and the buttons floating along the bottom bring the other cards
-(paintings, writing, projects, cha, contact) up in front of it.
-
-The home card's background is made of the photos in `content/background/`.
+The home page background is made of the photos in `content/background/`.
 Each one is shown whole, as wide as the screen, and they stack top to
-bottom, so scrolling down the home card scrolls over them one after another.
+bottom, so scrolling down the home page scrolls over them one after another.
 Crop the photo to just the painting before adding it.
 
 - To add one, drop the photo into `content/background/` and rebuild.

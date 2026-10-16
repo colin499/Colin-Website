@@ -1,62 +1,65 @@
 // Site logic. Posts come from posts.js, which is generated from the content/ folder by build.js.
-//
-// The site is a stack of cards, one per part: home (the painting with the title
-// over it), paintings, writing, projects, cha and contact. The buttons float in
-// front of whichever card is showing. Clicking one pushes the current card
-// back into the screen while the chosen card comes up from below and settles
-// in front. A piece of writing or a project is a card of its own.
+let currentFilter = 'home';
 
-// The runner game hidden between the paintings on the home card (see game.js).
+// The runner game hidden between the paintings on the home page (see game.js).
 // Switched off for now: set this to true to bring it back.
 const GAMES_ON = false;
 let allPosts = [...posts];
 
-// The sections, in button order, and the kind of post each shows.
-const SECTIONS = ['paintings', 'writing', 'projects', 'cha', 'contact'];
-const TYPES = { paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha' };
+function toggleDropdown() {
+    document.getElementById('dropdown').classList.toggle('open');
+}
+
+// The section being viewed is kept in the address (index.html#paintings), so
+// reloading stays on the same section and the back button works.
+const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha', contact: 'contact' };
+
 // Sections shown as a grid of squares that each open into one piece.
 const PIECE_SECTIONS = ['writing', 'projects'];
 
-const SLIDE_MS = 1000;     // how long a change of card takes (the same as --slide in style.css)
-
-// The card on top: 'home', a section like 'writing', or a piece like 'writing/<slug>'.
-let currentCard = null;
-let cardTimer = 0;
+// On those pages: which piece is open (null = the grid of squares).
+let currentPiece = null;
 
 function pieceSlug(post) {
     return post.title.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled';
 }
 
-function postsOf(section) {
-    return allPosts.filter(p => p.type === TYPES[section]).sort((a, b) => new Date(b.date) - new Date(a.date));
+function showSection(value, label, piece) {
+    currentPiece = PIECE_SECTIONS.includes(value) && piece ? piece : null;
+    currentFilter = value;
+    document.getElementById('dropdown-label').textContent = label;
+    document.getElementById('dropdown').classList.remove('open');
+    render();
 }
 
-// Which card an address means: '' is home, '#writing' a section, '#writing/<slug>' a piece.
-function keyFromHash(hash) {
-    const [name, slug] = decodeURIComponent(hash.replace(/^#/, '')).split('/');
-    if (slug && PIECE_SECTIONS.includes(name)) return name + '/' + slug;
-    return SECTIONS.includes(name) ? name : 'home';
+function showSectionFromAddress() {
+    const [label, piece] = decodeURIComponent(location.hash.slice(1)).split('/');
+    if (SECTIONS[label]) showSection(SECTIONS[label], label, piece);
+    else showSection('home', 'home');
 }
 
-// A floating button, or the site title: bring that card to the top.
-// The address keeps the card (index.html#writing), so reloading and the back button work.
-function goTo(name) {
-    navigate(name === 'home' ? '' : '#' + name);
+function selectFilter(value, label) {
+    const address = value === 'home' ? location.pathname + location.search : '#' + label;
+    if (value !== currentFilter || currentPiece) history.pushState(null, '', address);
+    showSection(value, label);
+    window.scrollTo(0, 0);
 }
 
-// Open one piece (of writing, or one project) from its grid.
+// Open one piece (of writing, or one project) from the grid.
 function openPiece(section, slug) {
-    navigate('#' + section + '/' + slug);
+    history.pushState(null, '', '#' + section + '/' + slug);
+    showSection(section, section, slug);
+    window.scrollTo(0, 0);
 }
 
-function navigate(hash) {
-    if (location.hash !== hash) history.pushState(null, '', hash || location.pathname + location.search);
-    showCard(keyFromHash(hash), true);
-}
+window.addEventListener('popstate', showSectionFromAddress);
 
-window.addEventListener('popstate', () => showCard(keyFromHash(location.hash), true));
-
-
+document.addEventListener('click', function (e) {
+    const dropdown = document.getElementById('dropdown');
+    if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+    }
+});
 
 function formatDate(dateStr) {
     const [year, month, day] = dateStr.split('-');
@@ -88,7 +91,7 @@ function renderPost(post) {
     if (post.type === 'cha' && post.image) {
         return `
             <article class="post-full">
-                <img class="post-full-image" src="${post.image}" alt="${post.title}"${sizeAttrs(post)} loading="lazy">
+                <img class="post-full-image" src="${post.image}" alt="${post.title}" loading="lazy">
                 <div class="post-full-text">
                     <h2 class="post-title">${post.title}</h2>
                     ${post.caption ? `<div class="post-full-caption">${post.caption}</div>` : ''}
@@ -97,13 +100,12 @@ function renderPost(post) {
         `;
     }
 
-    // Paintings: the whole painting, big, with its title and caption. Click it to see it bigger still.
     if (post.image) {
         return `
-            <article class="post post-painting">
+            <article class="post post-painting post-${post.type}">
                 <div class="post-meta">${meta}</div>
                 <h2 class="post-title">${post.title}</h2>
-                <img class="post-image" src="${post.image}" alt="${post.title}"${sizeAttrs(post)}${post.caption ? ` data-caption="${post.caption.replace(/"/g, '&quot;')}"` : ''} loading="lazy" onclick="openLightbox(this)">
+                <img class="post-image" src="${post.image}" alt="${post.title}"${post.caption ? ` data-caption="${post.caption.replace(/"/g, '&quot;')}"` : ''} loading="lazy" onclick="openLightbox(this)">
                 ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
             </article>
         `;
@@ -135,132 +137,96 @@ function playButtonSound(name) {
     sound.audio.play().catch(() => {});
 }
 
-// ---------- the stack of cards ----------
-
-function renderStack() {
+function render() {
     const feed = document.getElementById('feed');
-    HomeGames.unmount();
 
-    // The photos in content/background/, stacked top to bottom: you scroll down
-    // over them while the title stays put. With the game on, a level sits in each gap.
-    const panels = (typeof backgrounds !== 'undefined' && backgrounds.length)
-        ? backgrounds
-        : [{ image: 'assets/home-painting.jpg', title: '' }];
-    feed.innerHTML = `
-        <section class="card card-home" data-card="home">
-            <div class="home">
+    // On the home page the top bar goes away: the title and menu float over the paintings.
+    document.body.classList.toggle('is-home', currentFilter === 'home');
+    document.body.classList.toggle('on-writing', currentFilter === 'writing');
+    setHeaderHeight();
+    HomeGames.unmount();   // the runner game only lives on the home page
+
+    if (currentFilter === 'home') {
+        // One full-width painting per photo in content/background/, stacked
+        // top to bottom. The card stays put while they scroll past behind it.
+        const panels = (typeof backgrounds !== 'undefined' && backgrounds.length)
+            ? backgrounds
+            : [{ image: 'assets/home-painting.jpg', title: '' }];
+        feed.innerHTML = `
+            <section class="home">
                 <div class="home-overlay">
                 <div class="home-card">
                     <h1 class="home-title">Brain Food</h1>
                     <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
+                    <ul class="home-links">
+                        <li><a href="#" onclick="playButtonSound('paintings'); selectFilter('painting', 'paintings'); return false;">paintings</a></li>
+                        <li><a href="#" onclick="playButtonSound('writing'); selectFilter('writing', 'writing'); return false;">writing</a></li>
+                        <li><a href="#" onclick="playButtonSound('projects'); selectFilter('projects', 'projects'); return false;">projects</a></li>
+                        <li><a href="#" onclick="playButtonSound('cha'); selectFilter('cha', 'cha'); return false;">cha</a></li>
+                        <li><a href="#" onclick="playButtonSound('contact'); selectFilter('contact', 'contact'); return false;">contact</a></li>
+                    </ul>
                 </div>
                 </div>
-                ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${sizeAttrs(p)}${i ? ' loading="lazy"' : ''}>`)
+                ${panels.map((p, i) => `<img class="home-painting" src="${p.image}" alt="${p.title}"${i ? ' loading="lazy"' : ''}>`)
                     .join(GAMES_ON ? '<div class="home-game"><canvas aria-label="A small running game: press space or tap to start and jump, arrow keys to move"></canvas></div>' : '')}
                 ${GAMES_ON ? '<div class="home-game home-boss open" data-boss><canvas aria-label="The final level: press space or tap to shoot arrows at the giant pink blob"></canvas></div>' : ''}
                 ${GAMES_ON || WALKER_ON ? '<div class="home-floor"></div>' : ''}
-            </div>
-        </section>
-        ${SECTIONS.map(renderSection).join('')}
-    `;
-    if (GAMES_ON) HomeGames.mount(feed.querySelector('.card-home'));
-}
+            </section>
+        `;
+        if (GAMES_ON) HomeGames.mount(feed);
+        return;
+    }
 
-// One section's card.
-function renderSection(name) {
-    let body;
-    if (name === 'contact') {
-        body = `
+    if (currentFilter === 'contact') {
+        feed.innerHTML = `
             <div class="post post-writing">
                 <a href="mailto:colinlysik@gmail.com">colinlysik@gmail.com</a>
                 <div><a class="button" href="https://colinlysik.substack.com/" target="_blank" rel="noopener">substack</a></div>
             </div>
         `;
-    } else {
-        const sorted = postsOf(name);
-        if (!sorted.length) {
-            body = '<div class="empty">nothing here yet.</div>';
-        } else if (PIECE_SECTIONS.includes(name)) {
-            // Writing and projects: a grid of squares, one per piece. Clicking a square opens that piece.
-            body = `
-                <div class="tiles">
-                    ${sorted.map(p => {
-                        // the cover photo, or else the first photo in the piece, becomes the picture on its square
-                        const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
-                        return `
-                        <a class="tile${photo ? ' tile-photo' : ''}" href="#${name}/${pieceSlug(p)}" onclick="openPiece('${name}', '${pieceSlug(p)}'); return false;">
-                            ${photo ? `<img class="tile-image" src="${photo}" alt="" loading="lazy">` : ''}
-                            <span class="tile-text">
-                                <span class="tile-title">${p.title}</span>
-                                <span class="tile-date">${formatDate(p.date)}</span>
-                            </span>
-                        </a>
-                    `; }).join('')}
-                </div>
+        return;
+    }
+
+    const filtered = allPosts.filter(p => p.type === currentFilter);
+
+    const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (sorted.length === 0) {
+        feed.innerHTML = '<div class="empty">nothing here yet.</div>';
+        return;
+    }
+
+    // Writing and projects: a grid of squares, one per piece. Clicking a square opens that piece.
+    if (PIECE_SECTIONS.includes(currentFilter)) {
+        const section = currentFilter;
+        const piece = currentPiece && sorted.find(p => pieceSlug(p) === currentPiece);
+        if (piece) {
+            feed.innerHTML = `
+                <div class="piece-back"><a href="#${section}" onclick="selectFilter('${section}', '${section}'); return false;">← all ${section}</a></div>
+                ${renderPost(piece)}
             `;
-        } else {
-            body = sorted.map(renderPost).join('');
+            return;
         }
+        feed.innerHTML = `
+            <div class="tiles">
+                ${sorted.map(p => {
+                    // the cover photo, or else the first photo in the piece, becomes the picture on its square
+                    const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
+                    return `
+                    <a class="tile${photo ? ' tile-photo' : ''}" href="#${section}/${pieceSlug(p)}" onclick="openPiece('${section}', '${pieceSlug(p)}'); return false;">
+                        ${photo ? `<img class="tile-image" src="${photo}" alt="" loading="lazy">` : ''}
+                        <span class="tile-text">
+                            <span class="tile-title">${p.title}</span>
+                            <span class="tile-date">${formatDate(p.date)}</span>
+                        </span>
+                    </a>
+                `; }).join('')}
+            </div>
+        `;
+        return;
     }
-    return `<section class="card" data-card="${name}">${body}</section>`;
-}
 
-// The card for a key. A piece's card is made the first time it is opened and kept.
-function cardFor(key) {
-    const found = document.querySelector(`.card[data-card="${CSS.escape(key)}"]`);
-    if (found) return found;
-    const [section, slug] = key.split('/');
-    const piece = slug && postsOf(section).find(p => pieceSlug(p) === slug);
-    if (!piece) return null;
-    const card = document.createElement('section');
-    card.className = 'card card-piece';
-    card.dataset.card = key;
-    card.innerHTML = `
-        <div class="piece-back"><a href="#${section}" onclick="goTo('${section}'); return false;">← all ${section}</a></div>
-        ${renderPost(piece)}
-    `;
-    document.getElementById('feed').appendChild(card);
-    return card;
-}
-
-// The floating button for the card in front (or the section a piece belongs to) is filled in.
-function markCurrent(key) {
-    document.querySelectorAll('.dock a').forEach(a => {
-        a.classList.toggle('is-current', key === a.dataset.section || key.startsWith(a.dataset.section + '/'));
-    });
-}
-
-// Bring a card to the front: the current card is pushed back into the screen
-// while the new one comes up from below and settles over it.
-function showCard(key, animate) {
-    const next = cardFor(key) || cardFor('home');
-    key = next.dataset.card;
-    const prev = currentCard ? cardFor(currentCard) : null;
-    if (prev === next) return;
-    currentCard = key;
-
-    document.body.classList.toggle('is-home', key === 'home');
-    markCurrent(key);
-
-    // tidy up any card still mid-move from a quick earlier click
-    clearTimeout(cardTimer);
-    document.querySelectorAll('.card').forEach(c => { if (c !== next && c !== prev) c.classList.remove('is-active', 'is-away'); });
-
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    next.classList.remove('is-away');
-    next.classList.add('is-active');
-    if (!prev) return;
-    prev.classList.remove('is-active');
-    if (animate && !reduce) {
-        prev.classList.add('is-away');
-        cardTimer = setTimeout(() => prev.classList.remove('is-away'), SLIDE_MS);
-    }
-}
-
-// width and height for a photo, when the build recorded them, so a card
-// doesn't jump about while photos load.
-function sizeAttrs(p) {
-    return p.width && p.height ? ` width="${p.width}" height="${p.height}"` : '';
+    feed.innerHTML = sorted.map(renderPost).join('');
 }
 
 // The lightbox shows one painting big. The arrows (or the keyboard arrow
@@ -269,7 +235,7 @@ let lightboxImages = [];
 let lightboxIndex = 0;
 
 function openLightbox(img) {
-    lightboxImages = [...document.querySelectorAll('[data-card="paintings"] .post-image')];
+    lightboxImages = [...document.querySelectorAll('#feed .post-image')];
     lightboxIndex = Math.max(0, lightboxImages.indexOf(img));
     showLightboxImage();
     document.getElementById('lightbox').classList.add('open');
@@ -433,9 +399,10 @@ function stopAttack() {
 
 if (walker) setInterval(checkWalker, 60);
 
-// The cards leave room under the top bar, so CSS needs its height.
+// The home card is held in place just below the header, so CSS needs its height.
 function setHeaderHeight() {
-    document.documentElement.style.setProperty('--header-h', document.querySelector('header').offsetHeight + 'px');
+    const h = document.body.classList.contains('is-home') ? 0 : document.querySelector('header').offsetHeight;
+    document.documentElement.style.setProperty('--header-h', h + 'px');
 }
 
 window.addEventListener('resize', setHeaderHeight);
@@ -444,5 +411,4 @@ setHeaderHeight();
 
 // Substack posts are already in posts.js (the build downloads them).
 allPosts = posts;
-renderStack();
-showCard(keyFromHash(location.hash), false);
+showSectionFromAddress();

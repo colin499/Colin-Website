@@ -28,12 +28,10 @@ header {
     align-items: baseline;
     padding: 1.5rem 2rem;
     border-bottom: var(--border);
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     background-color: var(--paper);
-    z-index: 20;
+    z-index: 10;
 }
 
 .site-title {
@@ -42,6 +40,57 @@ header {
     text-decoration: none;
     color: var(--black);
     letter-spacing: 0.02em;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    background: transparent;
+    border: none;
+    border-bottom: var(--border);
+    padding: 0.1rem 0;
+    cursor: pointer;
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-toggle:focus {
+    outline: none;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background-color: var(--paper);
+    border: var(--border);
+    list-style: none;
+    min-width: 100%;
+    z-index: 100;
+}
+
+.dropdown-menu li {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dropdown-menu li:hover {
+    background-color: var(--black);
+    color: var(--paper);
+}
+
+.dropdown.open .dropdown-menu {
+    display: block;
 }
 
 /* Feed */
@@ -70,6 +119,18 @@ header {
 
 .post-writing .post-body {
     width: 100%;
+}
+
+.post-painting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Size of the photos in paintings and cha. */
+.post-painting .post-image {
+    width: 800px;
 }
 
 .post-meta {
@@ -106,7 +167,6 @@ header {
 .post-image {
     display: block;
     max-width: 100%;
-    height: auto;
     width: 480px;
     margin-top: 0.5rem;
     border: var(--border);
@@ -235,8 +295,8 @@ a:hover {
 }
 
 /* The writing squares are a deeper pink than the page, so they stand out. */
-[data-card="writing"] .tile,
-[data-card="writing"] .tile-photo .tile-text {
+body.on-writing .tile,
+body.on-writing .tile-photo .tile-text {
     background-color: var(--rose);
 }
 
@@ -346,88 +406,34 @@ a:hover {
     margin-top: 2em;
 }
 
-/* ---------- The stack of cards ----------
-   Each part of the site is a card that fills the screen and scrolls on its
-   own; the page itself never scrolls. The card in front is .is-active. When
-   you change cards, the old one is pushed back into the screen, tilting away
-   (.is-away), while the new one comes up from below the bottom edge and
-   settles in front. */
+/* Home page: the paintings run the full width of the screen and stack
+   top to bottom, so you scroll down over them. */
 
 :root {
     --panel-h: max(420px, calc(100svh - var(--header-h, 77px)));
-    --slide: 1s;                      /* the same as SLIDE_MS in main.js */
-    --ease-in-front: cubic-bezier(0.25, 0.9, 0.3, 1);   /* how a card settles in front */
-    --ease-to-back: cubic-bezier(0.4, 0, 0.6, 1);       /* how a card goes to the back */
 }
 
-html, body {
-    height: 100%;
-    overflow: hidden;
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100svh;
 }
 
 #feed {
-    position: fixed;
-    inset: 0;
-    perspective: 900px;               /* so a card pushed back really looks further away (smaller = more dramatic) */
-    perspective-origin: 50% 40%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.card {
-    position: absolute;
-    inset: 0;
-    box-sizing: border-box;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    background-color: var(--paper);
-    padding-top: var(--header-h, 77px);   /* under the top bar */
-    padding-bottom: 7rem;                 /* clear of the floating buttons */
-    box-shadow: 0 0 0 2px var(--black), 0 -12px 40px rgba(0, 0, 0, 0.25);   /* the card's edge, seen while it moves */
-    visibility: hidden;
-    transform: translate3d(0, 115%, -500px) rotateX(-28deg);   /* waiting below the bottom edge, tipped back */
-    transform-origin: 50% 50%;
-    backface-visibility: hidden;
-}
-
-.card-home {
-    padding: 0;
-}
-
-/* Coming up from below into the front. */
-.card.is-active {
-    visibility: visible;
-    transform: none;
-    z-index: 2;
-    transition: transform var(--slide) var(--ease-in-front);
-}
-
-/* Pushed back into the screen, tilting away, as the new card covers it. */
-.card.is-away {
-    visibility: visible;
-    transform: translate3d(0, -12%, -1600px) rotateX(32deg);
-    filter: brightness(0.5);
-    z-index: 1;
-    pointer-events: none;
-    transition: transform var(--slide) var(--ease-to-back), filter var(--slide) ease-in;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .card { transition: none !important; }
-}
-
-/* The home card: the painting fills it, with the title over it. */
 .home {
+    flex: 1;
     position: relative;
     background-color: #8a6f2c;
 }
 
-/* On the home card the bar is see-through, so the painting and the card sit
-   right at the top of the screen. */
-.card-home {
-    --panel-h: max(420px, 100svh);
-}
-
-/* No top bar over the backdrop: the title floats on the painting, which starts
-   at the very top of the screen. */
+/* No top bar on the home page: the title and menu sit on top of the
+   paintings, which start at the very top of the screen. */
 body.is-home header {
     position: fixed;
     left: 0;
@@ -437,13 +443,15 @@ body.is-home header {
     pointer-events: none;
 }
 
-body.is-home .site-title {
+body.is-home .site-title,
+body.is-home .dropdown {
     pointer-events: auto;
 }
 
 /* Home page text sits straight on the paintings, with no box. A soft glow
    in the page colour keeps it readable over dark paint. */
 body.is-home .site-title,
+body.is-home .dropdown-toggle,
 .home-card,
 .post-full-text {
     font-weight: 500;
@@ -459,26 +467,6 @@ body.is-home .site-title,
     display: block;
     width: 100%;
     height: auto;
-}
-
-/* ---------- Inside a section's card ---------- */
-
-/* Paintings, one under the other, each as big as the card allows. */
-.post-painting {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.post-painting .post-image {
-    width: 800px;
-    cursor: zoom-in;
-}
-
-.section .post:last-child,
-.section .post-full:last-child {
-    border-bottom: none;
 }
 
 /* The gap between two paintings. It starts as a thin black line and parts
@@ -540,7 +528,7 @@ body.no-walker .home-floor {
 /* Holds the card in place on screen while the paintings scroll behind it. */
 .home-overlay {
     position: sticky;
-    top: 0;
+    top: var(--header-h, 77px);
     height: var(--panel-h);
     margin-bottom: calc(-1 * var(--panel-h));
     z-index: 1;
@@ -569,41 +557,30 @@ body.no-walker .home-floor {
     margin-bottom: 1.5rem;
 }
 
-/* ---------- The floating buttons ----------
-   One per section, in front of every card, so you can hop between them.
-   The one for the card on top is filled in. */
-
-.dock {
-    position: fixed;
-    left: 2rem;
-    bottom: 2rem;
-    z-index: 30;
+.home-links {
+    list-style: none;
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    max-width: calc(100% - 4rem);
 }
 
-.dock a {
+.home-links a {
     display: inline-block;
     padding: 0.55rem 1.2rem;
     font-size: 16px;
-    font-weight: 500;
     background-color: var(--paper);
     border: var(--border);
     box-shadow: 3px 3px 0 var(--black);
-    text-decoration: none;
-    color: var(--black);
+    text-shadow: none;
 }
 
-.dock a:hover,
-.dock a.is-current {
+.home-links a:hover {
     background-color: var(--black);
     color: var(--paper);
     opacity: 1;
 }
 
-.dock a:active {
+.home-links a:active {
     transform: translate(3px, 3px);
     box-shadow: none;
 }
@@ -621,7 +598,11 @@ body.no-walker .home-floor {
     .tile-title, .tile-photo .tile-title { font-size: 0.95rem; }
     .piece-back { padding: 1.25rem 1.25rem 0; }
 
-    /* Home: the text sits near the top; the buttons float along the bottom */
+    /* Menu that is easy to hit with a thumb */
+    .dropdown-toggle { font-size: 15px; padding: 0.4rem 0; }
+    .dropdown-menu li { font-size: 16px; padding: 0.7rem 1.1rem; }
+
+    /* Home: text and buttons sit near the top, clear of the walker at the bottom */
     .home-card {
         top: 4.5rem;
         left: 1.25rem;
@@ -634,16 +615,6 @@ body.no-walker .home-floor {
     .home-title { font-size: 1.3rem; margin-bottom: 0.5rem; }
     .home-floor { height: 170px; }
     .home-text { margin-bottom: 1rem; }
-    .dock {
-        left: 1.25rem;
-        right: 1.25rem;
-        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-        max-width: none;
-        gap: 0.5rem;
-    }
-    .dock a { padding: 0.5rem 0.9rem; font-size: 15px; }
-    .card { padding-bottom: 8rem; }
-    .card-home { padding-bottom: 0; }
 
     /* Lightbox: arrows along the bottom, clear of the picture */
     #lightbox-img { max-width: 92vw; max-height: 72vh; }
