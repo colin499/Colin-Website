@@ -28,6 +28,11 @@ const SUBSTACK_FEED = 'https://colinlysik.substack.com/feed';
 const SUBSTACK_CACHE = path.join(ROOT, 'assets', 'substack-posts.json');
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
 const TEXT_EXTS = ['.md', '.txt'];
+const VIDEO_EXTS = ['.mov', '.mp4', '.m4v'];
+
+function isVideo(file) {
+    return VIDEO_EXTS.includes(path.extname(file).toLowerCase());
+}
 
 function isText(file) {
     return TEXT_EXTS.includes(path.extname(file).toLowerCase());
@@ -167,6 +172,30 @@ function webCopy(src, label) {
     return relativeUrl(out);
 }
 
+// Videos straight off a phone or a screen recording are far too big for the
+// site, so each gets a smaller .mp4 copy in assets/web/, made by
+// tools/shrink-video (a small program that uses the Mac's own video tools).
+const SHRINK_VIDEO = path.join(ROOT, 'tools', 'shrink-video');
+
+// A trim ("from 1 to 22") keeps only that stretch, in seconds.
+function webVideoCopy(src, label, trim) {
+    const suffix = trim ? `-${trim.from}-${trim.to}`.replace(/\./g, '_') : '';
+    const out = path.join(WEB_OUT, label, path.basename(src, path.extname(src)) + suffix + '.mp4');
+    if (!fs.existsSync(out) || fs.statSync(out).mtimeMs < fs.statSync(src).mtimeMs) {
+        try {
+            fs.mkdirSync(path.dirname(out), { recursive: true });
+            console.log(`Shrinking video ${path.relative(ROOT, src)} (this can take a minute)...`);
+            execFileSync(SHRINK_VIDEO, [src, out, ...(trim ? [trim.from, trim.to] : [])], { stdio: 'ignore' });
+            console.log(`Prepared web copy of ${path.relative(ROOT, src)}`);
+        } catch (e) {
+            warnings.push(`couldn't shrink the video ${path.relative(ROOT, src)}, so it was left off the site.`);
+            return null;
+        }
+    }
+    webCopiesInUse.add(out);
+    return relativeUrl(out);
+}
+
 // Remove web copies of photos that have been deleted or renamed.
 function cleanWebCopies(dir) {
     if (!fs.existsSync(dir)) return;
@@ -240,14 +269,21 @@ function buildTextSection(type, dir) {
     convertHeic(dir);
     const files = listFiles(dir);
     const images = files.filter(isImage);
+    const videos = files.filter(isVideo);
 
     // A photo in the folder is used in the text as ![](photo.jpeg), or as the
     // cover with "image: photo.jpeg" in the top block. It gets a web-sized copy.
     // Anything that isn't a file in the folder (a web address, say) is left as is.
     function photoUrl(name, file) {
+        // a video can be trimmed: ![](clip.mov from 1 to 22)
+        let trim = null;
+        const trimMatch = name.match(/^(.*?)\s+from\s+([\d.]+)\s+to\s+([\d.]+)\s*$/i);
+        if (trimMatch) { name = trimMatch[1]; trim = { from: trimMatch[2], to: trimMatch[3] }; }
         const wanted = name.trim().normalize('NFC');
         const match = images.find(img => img.normalize('NFC') === wanted);
         if (match) return webCopy(path.join(dir, match), label);
+        const video = videos.find(v => v.normalize('NFC') === wanted);
+        if (video) return webVideoCopy(path.join(dir, video), label, trim) || '';
         if (!/[/:]/.test(wanted) && !fs.existsSync(path.join(dir, wanted))) {
             warnings.push(`content/${label}/${file}: can't find photo "${name}" — add it to content/${label}/.`);
         }
@@ -271,8 +307,16 @@ function buildTextSection(type, dir) {
             title: meta.title || titleFromFilename(file),
             contentHtml: markdownToHtml(body).replace(/(<img class="post-image" src=")([^"]+)(")/g,
                 (all, start, src, end) => start + photoUrl(src, file) + end)
+                // a video written as ![](clip.mov) becomes a player that starts by itself.
+                // Browsers only allow that with the sound off; the speaker button turns it on.
+                .replace(/<img class="post-image" src="([^"]*)" alt="[^"]*">/g, (all, src) =>
+                    !src ? '' : /\.(mp4|mov|m4v)$/i.test(src)
+                        ? `<video class="post-video" src="${src}#t=0.1" autoplay muted loop controls playsinline preload="auto"></video>`
+                        : all)
         };
         if (meta.image) post.image = photoUrl(meta.image, file);
+        // which part of the photo shows on a project's button: top, bottom, left, right or center
+        if (meta.crop) post.crop = meta.crop.trim().toLowerCase();
         posts.push(post);
     }
     return posts;

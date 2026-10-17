@@ -7,10 +7,11 @@ draft: true
 This is a stand-in so you can see the format. Remove the `draft: true` line
 above to make it show up, or delete this file and make your own.
 
-Leave a blank line between paragraphs. *Italic* and **bold** work like in writing.
+![](photo-1.jpeg)
 
-## A section heading starts with two # signs
+Text under a photo goes right after it, like this. Leave a blank line
+between paragraphs. *Italic* and **bold** work like in writing.
 
-To show a photo here, drop it in this folder and write its name on its own line like this:
+![](photo-2.jpeg)
 
-![](photo.jpeg)
+A photo with nothing after it just gets the next photo.

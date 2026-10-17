@@ -93,20 +93,59 @@ If Substack can't be reached, the posts saved from the last build are used.
 
 ## Add a project
 
-Same as writing, but in `content/projects/`. Make a file ending in `.md`,
-like `treehouse.md`, with the same top block (title and date) and the
-write-up below it. It shows up under "projects" in the menu as a grid of
-squares; clicking one opens the project.
+Each project is a button down the left side of the projects page. Clicking
+the button shows that project's photos beside it, with whatever text you
+want under each photo.
 
-Photos: drop them into `content/projects/` next to the file. To show one
-at the top of the project (and on its square), add a line to the top block:
+1. Drop the project's photos into `content/projects/`. iPhone photos
+   (`.heic`) are fine, and so are renderings saved as `.png`.
+2. Make a file in `content/projects/` ending in `.md`, like
+   `ipad-mini-case.md`. The title is what the button says. List each
+   photo on its own line like `![](photo.jpeg)`, and put any text you
+   want under a photo right after it:
 
 ```
-image: treehouse.jpeg
+---
+title: iPad mini e-reader case
+date: 2026-10-17
+---
+
+![](ipad-mini-case-1.png)
+
+A few words about this view, if you want them. Leave a blank line
+between paragraphs. *Italic* and **bold** work like in writing.
+
+![](ipad-mini-case-2.png)
 ```
 
-To put photos in the text, write `![](treehouse-2.jpeg)` on its own line
-wherever you want one. iPhone photos (`.heic`) are fine.
+3. Double-click **Build Site.command**.
+
+**Videos** work the same way. Drop the video into `content/projects/` and
+write `![](my-video.mov)` on its own line where you want it. The build
+makes a smaller copy for the site, which can take a minute the first time.
+The original stays on your computer only, because it's usually too big
+to put online.
+
+To use only part of a video, add the start and end in seconds:
+
+```
+![](layover-video.mov from 1 to 22)
+```
+
+A photo with no text after it is fine. Text before the first photo works
+too. Projects are listed newest date first, so change the dates to reorder
+the buttons.
+
+The button is filled with the project's first photo. To use a different
+one, add a line to the top block naming it:
+
+```
+image: ipad-mini-case-2.png
+```
+
+The photo is cropped to fit the button, showing its middle. To show a
+different part, add `crop: top` (or `bottom`, `left`, `right`) to the
+top block.
 
 ## Hide something without deleting it
 
@@ -127,9 +166,10 @@ content/
   cha/              photos of Cha, same format as paintings
   writing/          one .md file per piece of writing
     original-word-docs/   the Word files these started as (not used by the site)
-  projects/         one .md file per project, plus its photos
+  projects/         one .md file per project (a button each), plus its photos and videos
 assets/
   substack-posts.json   your Substack posts, saved by the build (don't edit)
+tools/shrink-video  makes the smaller video copies (used by the build)
 Build Site.command  double-click after editing
 HOW-TO-EDIT.md      this file
 ```

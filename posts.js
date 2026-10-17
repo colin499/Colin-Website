@@ -132,6 +132,20 @@ const posts = [
         "caption": ""
     },
     {
+        "type": "projects",
+        "date": "2026-10-17",
+        "title": "iPad mini e-reader case",
+        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/ipad-mini-case-1.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-case-2.jpg\" alt=\"\">",
+        "image": "assets/web/projects/ipad-mini-case-2.jpg"
+    },
+    {
+        "type": "projects",
+        "date": "2026-10-17",
+        "title": "Layover",
+        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/layover-1.jpg\" alt=\"\"><video class=\"post-video\" src=\"assets/web/projects/layover-video-1_75-20.mp4#t=0.1\" autoplay muted loop controls playsinline preload=\"auto\"></video>",
+        "crop": "top"
+    },
+    {
         "type": "writing",
         "date": "2026-05-03",
         "title": "Hainanese rice with Chaïneze, nice.",

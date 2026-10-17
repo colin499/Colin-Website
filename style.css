@@ -300,6 +300,124 @@ body.on-writing .tile-photo .tile-text {
     background-color: var(--rose);
 }
 
+/* Projects: a column of buttons down the left, one per project.
+   The open project's photos sit beside them, each with its text underneath. */
+
+.projects {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    column-gap: 3rem;
+    align-items: start;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+}
+
+.project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky;
+    top: calc(var(--header-h, 77px) + 2.5rem);
+}
+
+/* Each button is filled with the project's photo (cropped to fit the button),
+   with the title in pink floating over it. */
+.project-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 78px;
+    padding: 0.9rem 1.1rem;
+    overflow: hidden;
+    border: var(--border);
+    box-shadow: 4px 4px 0 var(--black);
+    background-color: var(--paper);
+}
+
+.project-button-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.project-button-title {
+    position: relative;
+    z-index: 1;
+    max-width: 65%;
+    color: var(--rose);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 8px rgba(0, 0, 0, 0.6);
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.project-button:hover,
+.project-button.open {
+    opacity: 1;
+}
+
+.project-button:hover .project-button-title,
+.project-button.open .project-button-title {
+    color: var(--paper);
+}
+
+.project-button:active {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+}
+
+/* The photos fill the column; the text under each stays an easy reading width. */
+.project-body {
+    max-width: 1000px;
+    scroll-margin-top: calc(var(--header-h, 77px) + 1rem);
+}
+
+.project-body img {
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    cursor: zoom-in;
+}
+
+.project-body p {
+    max-width: 60ch;
+}
+
+/* Videos in a project: as wide as the photos, with play controls. */
+.post-video {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+    border: var(--border);
+    background-color: var(--black);
+}
+
+.project-body img + .post-video,
+.project-body .post-video + img,
+.project-body .post-video + .post-video {
+    margin-top: 1.5rem;
+}
+
+.project-body p + .post-video,
+.project-body h3 + .post-video {
+    margin-top: 2rem;
+}
+
+.project-body p + img,
+.project-body h3 + img {
+    margin-top: 2rem;
+}
+
+.project-body img + img {
+    margin-top: 1.5rem;
+}
+
 .piece-back {
     padding: 1.5rem 2rem 0;
 }
@@ -597,6 +715,12 @@ body.no-walker .home-floor {
     .tile-photo .tile-text { padding: 0.5rem 0.7rem; }
     .tile-title, .tile-photo .tile-title { font-size: 0.95rem; }
     .piece-back { padding: 1.25rem 1.25rem 0; }
+    /* Projects: buttons across the top, the open project's photos below them */
+    .projects { grid-template-columns: 1fr; row-gap: 1.5rem; padding: 1.5rem 1.25rem; }
+    .project-list { position: static; gap: 0.75rem; }
+    .project-button { box-shadow: 3px 3px 0 var(--black); }
+    .project-button { min-height: 64px; padding: 0.75rem 0.9rem; }
+    .project-button-title { font-size: 0.95rem; }
 
     /* Menu that is easy to hit with a thumb */
     .dropdown-toggle { font-size: 15px; padding: 0.4rem 0; }

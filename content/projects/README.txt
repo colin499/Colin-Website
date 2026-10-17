@@ -1,4 +1,5 @@
-One .md file per project goes in this folder, same format as writing.
-Drop the project's photos in here too: "image: photo.jpeg" in the top
-block puts one at the top, and ![](photo.jpeg) on its own line puts one
-in the text. See "Add a project" in HOW-TO-EDIT.md.
+One .md file per project goes in this folder, with its photos next to it.
+Each project is a button on the left of the projects page; clicking it
+shows the photos. Write ![](photo.jpeg) on its own line for each photo,
+and any text you want under it right below. See "Add a project" in
+HOW-TO-EDIT.md.

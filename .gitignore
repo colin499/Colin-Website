@@ -6,3 +6,10 @@
 *.HEIC
 *.heif
 *.HEIF
+
+# Original videos are too big for GitHub; the site uses the shrunk .mp4 copies in assets/web/
+content/**/*.mov
+content/**/*.MOV
+content/**/*.mp4
+content/**/*.MP4
+content/**/*.m4v

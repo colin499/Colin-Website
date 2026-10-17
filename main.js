@@ -137,6 +137,47 @@ function playButtonSound(name) {
     sound.audio.play().catch(() => {});
 }
 
+// Projects: a column of buttons down the left, one per project. Clicking a
+// button opens that project's photos (with any text under them) beside it;
+// clicking it again closes it. The open project is kept in the address.
+function renderProjects(projects) {
+    const open = currentPiece && projects.find(p => pieceSlug(p) === currentPiece);
+    const buttons = projects.map(p => {
+        const slug = pieceSlug(p);
+        // the photo named with "image:", or else the first photo in the project, fills the button
+        const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
+        return `<a class="project-button${p === open ? ' open' : ''}" href="#projects/${slug}" onclick="toggleProject('${slug}'); return false;">
+            <span class="project-button-title">${p.title}</span>
+            ${photo ? `<img class="project-button-image" src="${photo}" alt="" loading="lazy"${/^[a-z0-9% ]+$/.test(p.crop || '') ? ` style="object-position: ${p.crop}"` : ''}>` : ''}
+        </a>`;
+    }).join('');
+    let body = '';
+    if (open) {
+        // "image:" in the project file is the photo on its button; if it isn't also
+        // listed in the text, it's shown first.
+        const listed = (open.contentHtml || '').includes(`src="${open.image}"`);
+        const cover = open.image && !listed ? `<img class="post-image" src="${open.image}" alt="">` : '';
+        body = (cover + (open.contentHtml || ''))
+            .replace(/<img class="post-image" src="([^"]*)" alt=""/g, (all, src) => `<img class="post-image" src="${src}" alt="${open.title.replace(/"/g, '&quot;')}"`)
+            .replace(/<img class="post-image" /g, '<img class="post-image" loading="lazy" onclick="openLightbox(this)" ');
+    }
+    return `
+        <div class="projects">
+            <nav class="project-list">${buttons}</nav>
+            ${open ? `<div class="project-body post-body">${body}</div>` : ''}
+        </div>
+    `;
+}
+
+function toggleProject(slug) {
+    const opening = currentPiece !== slug;
+    history.pushState(null, '', opening ? '#projects/' + slug : '#projects');
+    showSection('projects', 'projects', opening ? slug : null);
+    // On a phone the photos sit under the buttons, so bring them into view.
+    const body = document.querySelector('.project-body');
+    if (opening && body && window.innerWidth <= 700) body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function render() {
     const feed = document.getElementById('feed');
 
@@ -196,7 +237,12 @@ function render() {
         return;
     }
 
-    // Writing and projects: a grid of squares, one per piece. Clicking a square opens that piece.
+    if (currentFilter === 'projects') {
+        feed.innerHTML = renderProjects(sorted);
+        return;
+    }
+
+    // Writing: a grid of squares, one per piece. Clicking a square opens that piece.
     if (PIECE_SECTIONS.includes(currentFilter)) {
         const section = currentFilter;
         const piece = currentPiece && sorted.find(p => pieceSlug(p) === currentPiece);
