@@ -1,11 +1,13 @@
-// Makes a web-sized copy of a video: H.264 .mp4, at most MAX_W pixels wide,
-// at a modest bitrate, with the sound kept. Used by build.js.
+// Makes a web-sized copy of a video: HEVC (H.265) .mp4, at most MAX_W pixels
+// wide, up to 60 frames a second, with the sound kept. HEVC needs about half
+// the data of the older H.264 for the same picture. Used by build.js.
 // Usage: shrink-video <input> <output.mp4> [start seconds] [end seconds]
 import AVFoundation
 import Foundation
 
-let MAX_W: CGFloat = 1600
-let VIDEO_BITRATE = 2_500_000
+let MAX_W: CGFloat = 1920
+let VIDEO_BITRATE = 6_000_000
+let MAX_FPS: Float = 60
 
 let args = CommandLine.arguments
 guard args.count >= 3 else { print("usage: shrink-video <input> <output.mp4> [start] [end]"); exit(2) }
@@ -44,7 +46,7 @@ writer.shouldOptimizeForNetworkUse = true
 // Video: let a composition handle rotation and scaling.
 let comp = AVMutableVideoComposition(propertiesOf: asset)
 comp.renderSize = CGSize(width: outW, height: outH)
-let fps = vTrack.nominalFrameRate > 0 ? min(vTrack.nominalFrameRate, 30) : 30
+let fps = vTrack.nominalFrameRate > 0 ? min(vTrack.nominalFrameRate, MAX_FPS) : 30
 comp.frameDuration = CMTime(value: 1, timescale: CMTimeScale(fps.rounded()))
 let instr = AVMutableVideoCompositionInstruction()
 instr.timeRange = CMTimeRange(start: .zero, duration: asset.duration)
@@ -60,13 +62,13 @@ let vOut = AVAssetReaderVideoCompositionOutput(videoTracks: [vTrack], videoSetti
 vOut.videoComposition = comp
 reader.add(vOut)
 let vIn = AVAssetWriterInput(mediaType: .video, outputSettings: [
-    AVVideoCodecKey: AVVideoCodecType.h264,
+    AVVideoCodecKey: AVVideoCodecType.hevc,
     AVVideoWidthKey: outW,
     AVVideoHeightKey: outH,
     AVVideoCompressionPropertiesKey: [
         AVVideoAverageBitRateKey: VIDEO_BITRATE,
-        AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
-        AVVideoMaxKeyFrameIntervalKey: 60,
+        AVVideoExpectedSourceFrameRateKey: Int(fps.rounded()),
+        AVVideoMaxKeyFrameIntervalKey: Int(fps.rounded()) * 2,
     ],
 ])
 vIn.expectsMediaDataInRealTime = false

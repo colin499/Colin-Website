@@ -24,3 +24,5 @@ What it does
 
 It was heating my computer up substantially but after a few more prompts to Claude, the games run much more efficiently.  
 
+
+![](layover-video-2.mov from 3 to 88)

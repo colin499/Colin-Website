@@ -138,7 +138,9 @@ between paragraphs. *Italic* and **bold** work like in writing.
 write `![](my-video.mov)` on its own line where you want it. The build
 makes a smaller copy for the site, which can take a minute the first time.
 The original stays on your computer only, because it's usually too big
-to put online.
+to put online. The copy takes about 45 MB per minute of video, and GitHub's
+limit is 100 MB per file, so keep each clip under about two minutes
+(trim it, as below, if it's longer).
 
 To use only part of a video, add the start and end in seconds:
 
