@@ -6,9 +6,9 @@ crop: top
 
 ![](layover-1.jpg)
 
-Layover is a homemade launcher that runs the windows version of Steam on my MacBook Pro.  It was made using Claude code and is fine tuned to play Spiderman 2.  
+Layover is a homemade launcher that runs the windows version of Steam on my MacBook Pro.  It was made using Claude code and is fine tuned to play Spiderman 2 but I also tried fallout 4 on it and it works nicely.
 
-I'm not much of a gamer but I have a few long flights coming up and wanted to be able to funk around with some video games while journeying so I put Claude to the test to see if it could come up with a solution and it did a very good job.
+I'm not a gamer but I have a few long flights coming up and wanted to be able to funk around with some video games while journeying so I put Claude to the test to see if it could come up with a solution and it did a very good job.
 
 
 ![](layover-video.mov from 1.75 to 20)
