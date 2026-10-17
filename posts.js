@@ -135,7 +135,7 @@ const posts = [
         "type": "projects",
         "date": "2026-10-17",
         "title": "iPad mini e-reader case",
-        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/ipad-mini-case-1.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-case-2.jpg\" alt=\"\">",
+        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/ipad-mini-case-1.jpg\" alt=\"\"><p>This iPad mini e-reader case was my solution to gripping the not so grippy iPad mini when reading.  The extended edge allows for easier grip and maneuvering and leaves room for the pencil if you are so inclined.</p><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-case-2.jpg\" alt=\"\"><p>I hardly use the pencil so sometimes I use the case without pencil capability</p>",
         "image": "assets/web/projects/ipad-mini-case-2.jpg"
     },
     {

@@ -10,6 +10,20 @@ and opens it in your browser. That's it.
 enough. If the site still looks old after building, press Cmd+Shift+R in the
 browser to reload it fresh.
 
+## Put it online
+
+Building only updates the copy on your Mac. When it looks right, double-click
+**Publish Site.command**. It builds again, lists what changed, asks for a few
+words describing the change (or just press Return), and uploads it.
+colinlysik.com shows the changes a minute or two later.
+
+- It only publishes the website's own files. Other things lying around in
+  this folder, like screen recordings, are left alone.
+- If a file is over 100 MB it stops and tells you which one, because GitHub
+  won't take it. Nothing is published until that's fixed.
+- If the upload fails, your changes are still saved on this Mac. Ask Claude
+  to push them.
+
 ---
 
 ## Change the home page text
@@ -170,7 +184,8 @@ content/
 assets/
   substack-posts.json   your Substack posts, saved by the build (don't edit)
 tools/shrink-video  makes the smaller video copies (used by the build)
-Build Site.command  double-click after editing
+Build Site.command  double-click after editing, to see it on your Mac
+Publish Site.command  double-click to put it online
 HOW-TO-EDIT.md      this file
 ```
 
