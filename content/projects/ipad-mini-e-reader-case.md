@@ -12,4 +12,4 @@ This iPad mini e-reader case was my solution to gripping the not so grippy iPad 
 
 I hardly use the pencil so sometimes I use the case without pencil capability
 
-
+![](IMG_9197.jpeg)
