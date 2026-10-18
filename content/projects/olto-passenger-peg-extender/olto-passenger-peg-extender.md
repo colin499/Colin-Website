@@ -14,3 +14,7 @@ I got lucky and came upon the step files for the stock pegs which unlocked a lot
 ![](passenger-peg-open.png)
 
 Excuse the shitty pictures taken with my phone.
+
+![](peg-installed-1.jpeg)
+
+![](peg-installed-2.jpeg)
