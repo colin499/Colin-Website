@@ -20,6 +20,15 @@ if ! command -v node >/dev/null 2>&1; then
     finish 1
 fi
 
+# Git keeps a list of the site's files. If that list is missing or stuck
+# (iCloud syncing the Documents folder can interrupt git), stop rather than
+# publish from a broken state.
+if [ -f .git/index.lock ] || [ ! -f .git/index ]; then
+    echo "Git's file list is stuck or missing, so nothing was published."
+    echo "Nothing is lost. Ask Claude to fix git, then publish again."
+    finish 1
+fi
+
 echo
 echo "Building the site..."
 echo
@@ -32,7 +41,7 @@ fi
 # Only the website's own files are published. Anything else lying around in
 # this folder (screen recordings, downloads) is left alone.
 git add -- content assets posts.js index.html main.js style.css game.js build.js \
-    HOW-TO-EDIT.md tools .gitignore CNAME "Build Site.command" "Publish Site.command" 2>/dev/null
+    HOW-TO-EDIT.md tools .gitignore .nojekyll CNAME "Build Site.command" "Publish Site.command" 2>/dev/null
 
 if git diff --cached --quiet; then
     echo
