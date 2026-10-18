@@ -152,6 +152,13 @@ const posts = [
         "contentHtml": "<p>We recently scooped up an olto from Infinite Machine to get around New York easier.  We love it.</p><p>Cha loves it because she doesn't have to take the train to work anymore and same goes for me.  The only complaint she had was that the passenger pegs were too dinky to sit comfortably on the back for rides longer than an hour.</p><p>I got lucky and came upon the step files for the stock pegs which unlocked a lot of cool stuff for us.  So behold!  Some 3D printed passenger peg enhancer extenders for the lady.</p><img class=\"post-image\" src=\"assets/web/projects/olto-passenger-peg-extender/passenger-peg-closed.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto-passenger-peg-extender/passenger-peg-open.jpg\" alt=\"\"><p>Excuse the shitty pictures taken with my phone.</p><img class=\"post-image\" src=\"assets/web/projects/olto-passenger-peg-extender/peg-installed-1.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto-passenger-peg-extender/peg-installed-2.jpg\" alt=\"\">"
     },
     {
+        "type": "projects",
+        "date": "2026-10-19",
+        "title": "olto skateboard rack",
+        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-render-1.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-render-2.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-mounted.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-with-board.jpg\" alt=\"\">",
+        "image": "assets/web/projects/olto_skateboard_rack/skateboard-rack-with-board.jpg"
+    },
+    {
         "type": "writing",
         "date": "2026-05-03",
         "title": "Hainanese rice with Chaïneze, nice.",
