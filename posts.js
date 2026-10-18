@@ -155,7 +155,7 @@ const posts = [
         "type": "projects",
         "date": "2026-10-19",
         "title": "olto skateboard rack",
-        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-render-1.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-render-2.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-mounted.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-with-board.jpg\" alt=\"\">",
+        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-render-1.jpg\" alt=\"\"><p>The bracket was made to fit on Infinite Machine's side mounting plate which you can get <a href=\"https://www.infinitemachine.com/products/olto-side-mounting-plate\">here</a> .</p><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-render-2.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-mounted.jpg\" alt=\"\"><p>I cranked it a little too much on the first go so it cracked the PLA.  Still works!</p><p>Also not in CAD, first run with rubber barnacle guys.  Holds the board in perfectly without needing a top clamp.  Update with correct color coming soon.</p><img class=\"post-image\" src=\"assets/web/projects/olto_skateboard_rack/skateboard-rack-with-board.jpg\" alt=\"\">",
         "image": "assets/web/projects/olto_skateboard_rack/skateboard-rack-with-board.jpg"
     },
     {
