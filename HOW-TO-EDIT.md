@@ -111,9 +111,13 @@ Each project is a button down the left side of the projects page. Clicking
 the button shows that project's photos beside it, with whatever text you
 want under each photo.
 
-1. Drop the project's photos into `content/projects/`. iPhone photos
-   (`.heic`) are fine, and so are renderings saved as `.png`.
-2. Make a file in `content/projects/` ending in `.md`, like
+Each project has its own folder inside `content/projects/`, like
+`content/projects/layover/`. Everything for that project goes in its folder.
+
+1. Make a new folder in `content/projects/` named after the project.
+2. Drop the project's photos and videos into it. iPhone photos (`.heic`)
+   are fine, and so are renderings saved as `.png`.
+3. Make a file in that folder ending in `.md`, like
    `ipad-mini-case.md`. The title is what the button says. List each
    photo on its own line like `![](photo.jpeg)`, and put any text you
    want under a photo right after it:
@@ -132,9 +136,9 @@ between paragraphs. *Italic* and **bold** work like in writing.
 ![](ipad-mini-case-2.png)
 ```
 
-3. Double-click **Build Site.command**.
+4. Double-click **Build Site.command**.
 
-**Videos** work the same way. Drop the video into `content/projects/` and
+**Videos** work the same way. Drop the video into the project's folder and
 write `![](my-video.mov)` on its own line where you want it. The build
 makes a smaller copy for the site, which can take a minute the first time.
 The original stays on your computer only, because it's usually too big
@@ -182,7 +186,9 @@ content/
   cha/              photos of Cha, same format as paintings
   writing/          one .md file per piece of writing
     original-word-docs/   the Word files these started as (not used by the site)
-  projects/         one .md file per project (a button each), plus its photos and videos
+  projects/         one folder per project (a button each)
+    layover/          its .md file, photos and videos
+      not-shown/      spare photos or videos, kept but not shown
 assets/
   substack-posts.json   your Substack posts, saved by the build (don't edit)
 tools/shrink-video  makes the smaller video copies (used by the build)

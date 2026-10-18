@@ -15,7 +15,7 @@ const IMAGE_SECTIONS = [
 // Photos dropped in the same folder can be used in the text or as the cover.
 const TEXT_SECTIONS = [
     { type: 'writing',  dir: path.join(ROOT, 'content', 'writing') },
-    { type: 'projects', dir: path.join(ROOT, 'content', 'projects') }
+    { type: 'projects', dir: path.join(ROOT, 'content', 'projects'), folders: true }
 ];
 // Photos in here become the home page background, stacked top to bottom.
 const BACKGROUND_DIR = path.join(ROOT, 'content', 'background');
@@ -264,8 +264,22 @@ function buildImageSection(type, dir) {
 
 // ---------- text sections (writing, projects) ----------
 
-function buildTextSection(type, dir) {
-    const label = path.basename(dir);
+// Projects can each live in their own folder (content/projects/layover/),
+// holding the project's .md file and its photos and videos. A folder named
+// "not-shown", or any folder inside a project's folder, is ignored.
+function buildTextSection(type, dir, folders) {
+    const posts = buildTextFolder(type, dir);
+    if (!folders || !fs.existsSync(dir)) return posts;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === 'not-shown') continue;
+        posts.push(...buildTextFolder(type, path.join(dir, entry.name)));
+    }
+    return posts;
+}
+
+function buildTextFolder(type, dir) {
+    // e.g. "projects" or "projects/layover": where its web copies go, and how messages name it
+    const label = path.relative(path.join(ROOT, 'content'), dir).split(path.sep).join('/');
     convertHeic(dir);
     const files = listFiles(dir);
     const images = files.filter(isImage);
@@ -543,7 +557,7 @@ async function main() {
 
     const posts = [
         ...IMAGE_SECTIONS.flatMap(s => buildImageSection(s.type, s.dir)),
-        ...TEXT_SECTIONS.flatMap(s => buildTextSection(s.type, s.dir)),
+        ...TEXT_SECTIONS.flatMap(s => buildTextSection(s.type, s.dir, s.folders)),
         ...await buildSubstack()
     ];
     cleanWebCopies(WEB_OUT);    // web copies of photos that are gone or renamed
