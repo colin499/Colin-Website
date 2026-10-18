@@ -1,6 +1,6 @@
 ---
 title: iPad mini e-reader case
-date: 2026-10-17
+date: 2026-10-16
 image: ipad-mini-case-2.png
 ---
 
