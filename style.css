@@ -371,6 +371,12 @@ body.on-writing .tile-photo .tile-text {
     box-shadow: none;
 }
 
+/* The slim bar that replaces the buttons on a phone while a project is open.
+   Hidden on bigger screens, where the buttons sit beside the project. */
+.project-bar {
+    display: none;
+}
+
 /* The photos fill the column; the text under each stays an easy reading width. */
 .project-body {
     max-width: 1000px;
@@ -718,6 +724,23 @@ body.no-walker .home-floor {
     /* Projects: buttons across the top, the open project's photos below them */
     .projects { grid-template-columns: 1fr; row-gap: 1.5rem; padding: 1.5rem 1.25rem; }
     .project-list { position: static; gap: 0.75rem; }
+    .projects.has-open { row-gap: 1.25rem; padding-top: 0; }
+    .projects.has-open .project-list { display: none; }
+    .project-bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        position: sticky;
+        top: var(--header-h, 66px);
+        z-index: 5;
+        margin: 0 -1.25rem;
+        padding: 0.8rem 1.25rem;
+        background-color: var(--rose);
+        border-bottom: var(--border);
+    }
+    .project-bar-back { white-space: nowrap; font-size: 0.95rem; font-weight: 500; }
+    .project-bar-title { font-size: 0.85rem; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .project-button { box-shadow: 3px 3px 0 var(--black); }
     .project-button { min-height: 64px; padding: 0.75rem 0.9rem; }
     .project-button-title { font-size: 0.95rem; }

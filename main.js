@@ -161,8 +161,16 @@ function renderProjects(projects) {
             .replace(/<img class="post-image" src="([^"]*)" alt=""/g, (all, src) => `<img class="post-image" src="${src}" alt="${open.title.replace(/"/g, '&quot;')}"`)
             .replace(/<img class="post-image" /g, '<img class="post-image" loading="lazy" onclick="openLightbox(this)" ');
     }
+    // On a phone the buttons are tucked away while a project is open; a slim
+    // bar with the project's name and a way back to the list takes their place.
+    const bar = open ? `
+        <div class="project-bar">
+            <a class="project-bar-back" href="#projects" onclick="toggleProject('${pieceSlug(open)}'); return false;">← all projects</a>
+            <span class="project-bar-title">${open.title}</span>
+        </div>` : '';
     return `
-        <div class="projects">
+        <div class="projects${open ? ' has-open' : ''}">
+            ${bar}
             <nav class="project-list">${buttons}</nav>
             ${open ? `<div class="project-body post-body">${body}</div>` : ''}
         </div>
@@ -173,9 +181,8 @@ function toggleProject(slug) {
     const opening = currentPiece !== slug;
     history.pushState(null, '', opening ? '#projects/' + slug : '#projects');
     showSection('projects', 'projects', opening ? slug : null);
-    // On a phone the photos sit under the buttons, so bring them into view.
-    const body = document.querySelector('.project-body');
-    if (opening && body && window.innerWidth <= 700) body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // On a phone, start the project (or the list) from the top.
+    if (window.innerWidth <= 700) window.scrollTo(0, 0);
 }
 
 function render() {
