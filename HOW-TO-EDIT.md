@@ -17,6 +17,11 @@ Building only updates the copy on your Mac. When it looks right, double-click
 words describing the change (or just press Return), and uploads it.
 colinlysik.com shows the changes a minute or two later.
 
+Every folder inside `content`, including each project's folder, has its own
+**Publish Site.command** too, so you can publish from wherever you're
+working. They all do the same thing. A new project folder gets one the next
+time you build or publish.
+
 - It only publishes the website's own files. Other things lying around in
   this folder, like screen recordings, are left alone.
 - If a file is over 100 MB it stops and tells you which one, because GitHub

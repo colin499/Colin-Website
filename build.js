@@ -553,7 +553,35 @@ stripGpsIn(path.join(ROOT, 'assets'));
 
 // ---------- write posts.js ----------
 
+// ---------- publish shortcuts ----------
+
+// Every folder in content/ gets a "Publish Site.command" shortcut, so the site
+// can be published from wherever you're working. Each one just runs the real
+// Publish Site.command at the top of the website folder.
+const PUBLISH_SHORTCUT = `#!/bin/bash
+# Shortcut made by the build: runs "Publish Site.command" in the website folder.
+dir="$(cd "$(dirname "$0")" && pwd)"
+while [ "$dir" != "/" ] && [ ! -f "$dir/build.js" ]; do dir="$(dirname "$dir")"; done
+exec "$dir/Publish Site.command"
+`;
+const NO_SHORTCUT_FOLDERS = ['not-shown', 'original-word-docs'];
+
+function placePublishShortcuts(dir) {
+    if (!fs.existsSync(dir)) return;
+    const file = path.join(dir, 'Publish Site.command');
+    if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== PUBLISH_SHORTCUT) {
+        fs.writeFileSync(file, PUBLISH_SHORTCUT);
+    }
+    fs.chmodSync(file, 0o755);
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (entry.isDirectory() && !entry.name.startsWith('.') && !NO_SHORTCUT_FOLDERS.includes(entry.name)) {
+            placePublishShortcuts(path.join(dir, entry.name));
+        }
+    }
+}
+
 async function main() {
+    placePublishShortcuts(path.join(ROOT, 'content'));
 
     const posts = [
         ...IMAGE_SECTIONS.flatMap(s => buildImageSection(s.type, s.dir)),

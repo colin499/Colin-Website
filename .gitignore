@@ -13,3 +13,6 @@ content/**/*.MOV
 content/**/*.mp4
 content/**/*.MP4
 content/**/*.m4v
+
+# Publish shortcuts the build puts in every content folder
+content/**/Publish Site.command
