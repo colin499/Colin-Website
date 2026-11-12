@@ -115,7 +115,7 @@ function renderPost(post) {
 }
 
 // Sounds for the buttons on the home page.
-const BUTTON_SOUND_VOLUME = 0.8;   // 0 = silent, 1 = full volume
+const BUTTON_SOUND_VOLUME = 0;     // 0 = silent, 1 = full volume (was 0.8)
 const BUTTON_SOUNDS = {
     paintings: { file: 'assets/sounds/Bleep.wav' },
     writing:   { file: 'assets/sounds/Bloop.wav' },
@@ -125,6 +125,7 @@ const BUTTON_SOUNDS = {
 };
 
 for (const sound of Object.values(BUTTON_SOUNDS)) {
+    if (!BUTTON_SOUND_VOLUME) break;   // silent: don't even download the files
     sound.audio = new Audio(sound.file);
     sound.audio.preload = 'auto';
     sound.audio.volume = BUTTON_SOUND_VOLUME;
@@ -132,7 +133,7 @@ for (const sound of Object.values(BUTTON_SOUNDS)) {
 
 function playButtonSound(name) {
     const sound = BUTTON_SOUNDS[name];
-    if (!sound) return;
+    if (!sound || !sound.audio) return;
     sound.audio.currentTime = 0;
     sound.audio.play().catch(() => {});
 }
