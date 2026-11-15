@@ -1,7 +1,7 @@
 // GENERATED FILE — do not edit by hand.
 // Edit the files in the content/ folder, then double-click "Build Site.command".
 const home = {
-    "html": "<p>A place for paintings, writings and photos of Cha all neatly packaged in one place</p><p>Beware of cat.</p>"
+    "html": "<p>A place for paintings, writings and photos of Cha all neatly packaged in one place</p>"
 };
 
 const backgrounds = [
@@ -135,7 +135,19 @@ const posts = [
         "type": "projects",
         "date": "2026-10-16",
         "title": "iPad mini e-reader case",
-        "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-1.jpg\" alt=\"\"><p>This iPad mini e-reader case was my solution to gripping the not so grippy iPad mini when reading.  The extended edge allows for easier grip and maneuvering and leaves room for the pencil if you are so inclined.</p><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-2.jpg\" alt=\"\"><p>I hardly use the pencil so sometimes I use the case without pencil capability</p><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-3.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/IMG_9197.jpg\" alt=\"\">",
+        "contentHtml": "",
+        "versions": [
+            {
+                "name": "v1",
+                "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-1.jpg\" alt=\"\"><p>This iPad mini e-reader case was my solution to gripping the not so grippy iPad mini when reading.  The extended edge allows for easier grip and maneuvering and leaves room for the pencil if you are so inclined.</p><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-2.jpg\" alt=\"\"><p>I hardly use the pencil so sometimes I use the case without pencil capability</p><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-3.jpg\" alt=\"\"><img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/IMG_9197.jpg\" alt=\"\">",
+                "image": "assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-1.jpg"
+            },
+            {
+                "name": "v2",
+                "contentHtml": "<img class=\"post-image\" src=\"assets/web/projects/ipad-mini-e-reader-case/iPAD_MINI_CASE_live__2026-11-15_10-21-55.jpg\" alt=\"\">",
+                "image": "assets/web/projects/ipad-mini-e-reader-case/iPAD_MINI_CASE_live__2026-11-15_10-21-55.jpg"
+            }
+        ],
         "image": "assets/web/projects/ipad-mini-e-reader-case/ipad-mini-case-2.jpg"
     },
     {

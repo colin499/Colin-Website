@@ -20,12 +20,21 @@ const PIECE_SECTIONS = ['writing', 'projects'];
 // On those pages: which piece is open (null = the grid of squares).
 let currentPiece = null;
 
+// On a project that has versions (v1, v2...): which version is open
+// (null = the pictures to choose a version from).
+let currentVersion = null;
+
 function pieceSlug(post) {
     return post.title.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled';
 }
 
-function showSection(value, label, piece) {
+function slugify(text) {
+    return text.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled';
+}
+
+function showSection(value, label, piece, version) {
     currentPiece = PIECE_SECTIONS.includes(value) && piece ? piece : null;
+    currentVersion = currentPiece && version ? version : null;
     currentFilter = value;
     document.getElementById('dropdown-label').textContent = label;
     document.getElementById('dropdown').classList.remove('open');
@@ -33,8 +42,8 @@ function showSection(value, label, piece) {
 }
 
 function showSectionFromAddress() {
-    const [label, piece] = decodeURIComponent(location.hash.slice(1)).split('/');
-    if (SECTIONS[label]) showSection(SECTIONS[label], label, piece);
+    const [label, piece, version] = decodeURIComponent(location.hash.slice(1)).split('/');
+    if (SECTIONS[label]) showSection(SECTIONS[label], label, piece, version);
     else showSection('home', 'home');
 }
 
@@ -146,7 +155,8 @@ function renderProjects(projects) {
     const buttons = projects.map(p => {
         const slug = pieceSlug(p);
         // the photo named with "image:", or else the first photo in the project, fills the button
-        const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1];
+        const photo = p.image || ((p.contentHtml || '').match(/<img[^>]+src="([^"]+)"/) || [])[1]
+            || ((p.versions || []).find(v => v.image) || {}).image;
         return `<a class="project-button${p === open ? ' open' : ''}" href="#projects/${slug}" onclick="toggleProject('${slug}'); return false;">
             <span class="project-button-title">${p.title}</span>
             ${photo ? `<img class="project-button-image" src="${photo}" alt="" loading="lazy"${/^[a-z0-9% ]+$/.test(p.crop || '') ? ` style="object-position: ${p.crop}"` : ''}>` : ''}
@@ -156,9 +166,23 @@ function renderProjects(projects) {
     if (open) {
         // "image:" in the project file is the photo on its button; if it isn't also
         // listed in the text, it's shown first.
-        const listed = (open.contentHtml || '').includes(`src="${open.image}"`);
+        const versions = open.versions || [];
+        const version = versions.find(v => slugify(v.name) === currentVersion);
+        const listed = versions.length || (open.contentHtml || '').includes(`src="${open.image}"`);
         const cover = open.image && !listed ? `<img class="post-image" src="${open.image}" alt="">` : '';
-        body = (cover + (open.contentHtml || ''))
+        const slug = pieceSlug(open);
+        let extra = '';
+        if (version) {
+            // One version is open: a row of small buttons switches between them.
+            extra = `<nav class="version-tabs">${versions.map(v => `<a class="version-tab${v === version ? ' current' : ''}" href="#projects/${slug}/${slugify(v.name)}" onclick="openVersion('${slug}', '${slugify(v.name)}'); return false;">${v.name}</a>`).join('')}</nav>` + version.contentHtml;
+        } else if (versions.length) {
+            // No version chosen yet: one picture per version to pick from.
+            extra = `<div class="version-picker">${versions.map(v => `<a class="version-card" href="#projects/${slug}/${slugify(v.name)}" onclick="openVersion('${slug}', '${slugify(v.name)}'); return false;">
+                ${v.image ? `<img class="version-card-image" src="${v.image}" alt="${open.title.replace(/"/g, '&quot;')} ${v.name}">` : ''}
+                <span class="version-card-name">${v.name}</span>
+            </a>`).join('')}</div>`;
+        }
+        body = (version ? extra : cover + (open.contentHtml || '') + extra)
             .replace(/<img class="post-image" src="([^"]*)" alt=""/g, (all, src) => `<img class="post-image" src="${src}" alt="${open.title.replace(/"/g, '&quot;')}"`)
             .replace(/<img class="post-image" /g, '<img class="post-image" loading="lazy" onclick="openLightbox(this)" ');
     }
@@ -178,8 +202,16 @@ function renderProjects(projects) {
     `;
 }
 
+// Open one version (v1, v2...) of a project.
+function openVersion(slug, version) {
+    history.pushState(null, '', '#projects/' + slug + '/' + version);
+    showSection('projects', 'projects', slug, version);
+    window.scrollTo(0, 0);
+}
+
 function toggleProject(slug) {
-    const opening = currentPiece !== slug;
+    // With a version open, the project's button goes back to the pictures to choose from.
+    const opening = currentPiece !== slug || currentVersion;
     history.pushState(null, '', opening ? '#projects/' + slug : '#projects');
     showSection('projects', 'projects', opening ? slug : null);
     // On a phone, start the project (or the list) from the top.

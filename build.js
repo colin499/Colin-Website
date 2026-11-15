@@ -315,19 +315,37 @@ function buildTextFolder(type, dir) {
             warnings.push(`content/${label}/${file} is empty — skipped.`);
             continue;
         }
-        const post = {
-            type,
-            date: meta.date || fileDate(full),
-            title: meta.title || titleFromFilename(file),
-            contentHtml: markdownToHtml(body).replace(/(<img class="post-image" src=")([^"]+)(")/g,
+        // Turns the text into the page's HTML, pointing each photo at its web copy.
+        const toHtml = md => markdownToHtml(md).replace(/(<img class="post-image" src=")([^"]+)(")/g,
                 (all, start, src, end) => start + photoUrl(src, file) + end)
                 // a video written as ![](clip.mov) becomes a player that starts by itself.
                 // Browsers only allow that with the sound off; the speaker button turns it on.
                 .replace(/<img class="post-image" src="([^"]*)" alt="[^"]*">/g, (all, src) =>
                     !src ? '' : /\.(mp4|mov|m4v)$/i.test(src)
                         ? `<video class="post-video" src="${src}#t=0.1" autoplay muted loop controls playsinline preload="auto"></video>`
-                        : all)
+                        : all);
+
+        // A project can have versions. A line like "== v1 ==" starts one, and
+        // everything up to the next such line belongs to it. Opening the project
+        // then shows one picture per version to choose from. Anything written
+        // above the first "== ... ==" line is shown above those pictures.
+        const parts = body.split(/^[ \t]*={2,}[ \t]*([^=\r\n]+?)[ \t]*={2,}[ \t]*$/m);
+        const post = {
+            type,
+            date: meta.date || fileDate(full),
+            title: meta.title || titleFromFilename(file),
+            contentHtml: toHtml(parts[0])
         };
+        if (parts.length > 1) {
+            post.versions = [];
+            for (let i = 1; i < parts.length; i += 2) {
+                const html = toHtml(parts[i + 1] || '');
+                // the picture to click for this version is its first photo
+                const image = (html.match(/<img[^>]+src="([^"]+)"/) || [])[1];
+                if (!image) warnings.push(`content/${label}/${file}: version "${parts[i].trim()}" has no photo, so it shows as a plain button.`);
+                post.versions.push({ name: parts[i].trim(), contentHtml: html, ...(image ? { image } : {}) });
+            }
+        }
         if (meta.image) post.image = photoUrl(meta.image, file);
         // which part of the photo shows on a project's button: top, bottom, left, right or center
         if (meta.crop) post.crop = meta.crop.trim().toLowerCase();

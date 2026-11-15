@@ -424,6 +424,82 @@ body.on-writing .tile-photo .tile-text {
     margin-top: 1.5rem;
 }
 
+/* A project with versions (v1, v2...): one picture per version, side by side.
+   Clicking a picture opens that version. */
+.version-picker {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 2rem;
+}
+
+.project-body p + .version-picker,
+.project-body img + .version-picker {
+    margin-top: 2rem;
+}
+
+.version-card {
+    display: flex;
+    flex-direction: column;
+    border: var(--border);
+    box-shadow: 4px 4px 0 var(--black);
+    background-color: var(--paper);
+}
+
+.version-card:hover {
+    opacity: 1;
+}
+
+.version-card:active {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+}
+
+.project-body .version-card-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    margin: 0;
+    border: 0;
+    border-bottom: var(--border);
+    cursor: pointer;
+}
+
+.version-card-name {
+    padding: 0.7rem 1rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.version-card:hover .version-card-name {
+    background-color: var(--rose);
+}
+
+/* With one version open: small buttons to switch to another. */
+.version-tabs {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.version-tab {
+    padding: 0.35rem 0.9rem;
+    border: var(--border);
+    background-color: var(--paper);
+    font-weight: 500;
+}
+
+.version-tab:hover {
+    opacity: 1;
+    background-color: var(--rose);
+}
+
+.version-tab.current {
+    background-color: var(--black);
+    color: var(--paper);
+}
+
 .piece-back {
     padding: 1.5rem 2rem 0;
 }
@@ -744,6 +820,9 @@ body.no-walker .home-floor {
     .project-button { box-shadow: 3px 3px 0 var(--black); }
     .project-button { min-height: 64px; padding: 0.75rem 0.9rem; }
     .project-button-title { font-size: 0.95rem; }
+    .version-picker { gap: 1rem; }
+    .version-card { box-shadow: 3px 3px 0 var(--black); }
+    .version-card-name { padding: 0.5rem 0.7rem; font-size: 0.95rem; }
 
     /* Menu that is easy to hit with a thumb */
     .dropdown-toggle { font-size: 15px; padding: 0.4rem 0; }

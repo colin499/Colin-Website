@@ -172,6 +172,32 @@ The photo is cropped to fit the button, showing its middle. To show a
 different part, add `crop: top` (or `bottom`, `left`, `right`) to the
 top block.
 
+### A project with versions (v1, v2...)
+
+To split a project into versions, put a line like `== v1 ==` above the
+photos and text that belong to that version, and `== v2 ==` above the next
+lot:
+
+```
+== v1 ==
+
+![](ipad-mini-case-1.png)
+
+Words about the first version.
+
+== v2 ==
+
+![](ipad-mini-case-3.png)
+
+Words about the second version.
+```
+
+Clicking the project's button then shows one picture per version, side by
+side. Clicking a picture opens that version. The picture is the version's
+first photo, and the name between the `==` signs is its label, so it can be
+anything (`== with pencil ==`). Add a third version the same way. Anything
+written above the first `==` line shows above the pictures.
+
 ## Hide something without deleting it
 
 Add `draft: true` to the top block of any painting note or piece of writing.
