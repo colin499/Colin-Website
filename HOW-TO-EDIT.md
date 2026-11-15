@@ -83,6 +83,29 @@ Same as a painting, but in `content/cha/`. Drop the photo in, add a `.md`
 note with the same name for a title, date and caption, and rebuild. It shows
 up under "cha" in the menu.
 
+## Add something to the store
+
+Same as a painting, but in `content/store/`. Drop the photo in and make a
+`.md` note with the same name:
+
+```
+---
+title: so it goes case
+date: 2026-11-15
+price: $25
+link: https://the-page-where-people-pay
+caption: fits iPad mini 6 and 7
+---
+```
+
+It shows up under "store" in the menu with a **buy** button that goes to the
+link (a Stripe, PayPal, Etsy or Shopify page, whatever you sell through). If
+you leave the `link:` line out, the button says **email to buy** and opens
+an email to you with the item's name as the subject. Newest date shows first.
+
+To take something off the store, move its photo and note into
+`content/store/not-shown/`, or add `draft: true` to the note.
+
 ## Add writing
 
 1. Make a file in `content/writing/`, ending in `.md` or `.txt`, like `my-essay.md`.
@@ -215,6 +238,7 @@ content/
   background/       photos behind the home page, stacked top to bottom
   paintings/        photos + one .md note per painting
   cha/              photos of Cha, same format as paintings
+  store/            things for sale: photos + one .md note each (price, link)
   writing/          one .md file per piece of writing
     original-word-docs/   the Word files these started as (not used by the site)
   projects/         one folder per project (a button each)

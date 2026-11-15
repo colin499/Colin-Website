@@ -12,7 +12,7 @@ function toggleDropdown() {
 
 // The section being viewed is kept in the address (index.html#paintings), so
 // reloading stays on the same section and the back button works.
-const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha', contact: 'contact' };
+const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha', store: 'store', contact: 'contact' };
 
 // Sections shown as a grid of squares that each open into one piece.
 const PIECE_SECTIONS = ['writing', 'projects'];
@@ -109,6 +109,24 @@ function renderPost(post) {
         `;
     }
 
+    // Store: the photo, its price, and a button to buy it. The button goes to the
+    // item's "link:"; with no link it opens an email asking about the item.
+    if (post.type === 'store' && post.image) {
+        const safe = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        const buy = post.link
+            ? `<a class="button" href="${safe(post.link)}" target="_blank" rel="noopener">buy</a>`
+            : `<a class="button" href="mailto:${STORE_EMAIL}?subject=${encodeURIComponent(post.title)}">email to buy</a>`;
+        return `
+            <article class="post post-painting post-store">
+                <h2 class="post-title">${post.title}</h2>
+                <img class="post-image" src="${post.image}" alt="${safe(post.title)}" loading="lazy" onclick="openLightbox(this)">
+                ${post.price ? `<div class="store-price">${safe(post.price)}</div>` : ''}
+                ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
+                <div>${buy}</div>
+            </article>
+        `;
+    }
+
     if (post.image) {
         return `
             <article class="post post-painting post-${post.type}">
@@ -122,6 +140,9 @@ function renderPost(post) {
 
     return '';
 }
+
+// Where "email to buy" in the store sends its email.
+const STORE_EMAIL = 'colinlysik@gmail.com';
 
 // Sounds for the buttons on the home page.
 const BUTTON_SOUND_VOLUME = 0;     // 0 = silent, 1 = full volume (was 0.8)
@@ -244,6 +265,7 @@ function render() {
                         <li><a href="#" onclick="playButtonSound('writing'); selectFilter('writing', 'writing'); return false;">writing</a></li>
                         <li><a href="#" onclick="playButtonSound('projects'); selectFilter('projects', 'projects'); return false;">projects</a></li>
                         <li><a href="#" onclick="playButtonSound('cha'); selectFilter('cha', 'cha'); return false;">cha</a></li>
+                        <li><a href="#" onclick="selectFilter('store', 'store'); return false;">store</a></li>
                         <li><a href="#" onclick="playButtonSound('contact'); selectFilter('contact', 'contact'); return false;">contact</a></li>
                     </ul>
                 </div>

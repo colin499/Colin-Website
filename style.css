@@ -196,6 +196,17 @@ a:hover {
     border: var(--border);
 }
 
+/* Store: the price sits under the photo, above the buy button. */
+.store-price {
+    margin-top: 0.8rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.post-store .button {
+    margin-top: 1rem;
+}
+
 .button:hover {
     background-color: var(--black);
     color: var(--paper);

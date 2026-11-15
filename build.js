@@ -9,7 +9,9 @@ const ROOT = __dirname;
 // Image folders: each one becomes a section of the site. Add more here if you want.
 const IMAGE_SECTIONS = [
     { type: 'painting', dir: path.join(ROOT, 'content', 'paintings') },
-    { type: 'cha',      dir: path.join(ROOT, 'content', 'cha') }
+    { type: 'cha',      dir: path.join(ROOT, 'content', 'cha') },
+    // Things for sale: a note can also have "price:" and "link:" (where to buy it).
+    { type: 'store',    dir: path.join(ROOT, 'content', 'store') }
 ];
 // Text folders: one .md file per piece, shown as a grid of squares that open up.
 // Photos dropped in the same folder can be used in the text or as the cover.
@@ -239,7 +241,9 @@ function buildImageSection(type, dir) {
             title: meta.title || titleFromFilename(note),
             image: url,
             ...pixelSize(path.join(ROOT, url)),
-            caption: meta.caption || body || ''
+            caption: meta.caption || body || '',
+            ...(meta.price ? { price: meta.price } : {}),
+            ...(meta.link ? { link: meta.link } : {})
         });
     }
 
