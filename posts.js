@@ -52,15 +52,6 @@ const posts = [
     },
     {
         "type": "painting",
-        "date": "2026-10-04",
-        "title": "Mr. Anderson",
-        "image": "assets/web/paintings/Mr. Anderson.jpg",
-        "width": 1350,
-        "height": 1800,
-        "caption": "oil on wood , 2026"
-    },
-    {
-        "type": "painting",
         "date": "2026-04-25",
         "title": "amorph 1",
         "image": "assets/web/paintings/amorph_1_WIP.jpg",
@@ -76,15 +67,6 @@ const posts = [
         "width": 1795,
         "height": 1800,
         "caption": "oil on wood"
-    },
-    {
-        "type": "painting",
-        "date": "2026-10-04",
-        "title": "cornycopia",
-        "image": "assets/web/paintings/cornycopia.jpg",
-        "width": 1361,
-        "height": 1800,
-        "caption": "oil on wood , 2026"
     },
     {
         "type": "painting",
