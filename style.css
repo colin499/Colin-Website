@@ -786,6 +786,11 @@ body.no-walker .home-floor {
     margin-bottom: 1.5rem;
 }
 
+/* No home page text (content/home.txt is empty): no gap left where it was. */
+.home-text:empty {
+    display: none;
+}
+
 .home-links {
     list-style: none;
     display: flex;

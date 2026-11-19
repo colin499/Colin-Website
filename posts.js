@@ -1,7 +1,7 @@
 // GENERATED FILE — do not edit by hand.
 // Edit the files in the content/ folder, then double-click "Build Site.command".
 const home = {
-    "html": "<p>A place for paintings, writings and photos of Cha all neatly packaged in one place</p>"
+    "html": ""
 };
 
 const backgrounds = [
