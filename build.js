@@ -23,6 +23,7 @@ const TEXT_SECTIONS = [
 const BACKGROUND_DIR = path.join(ROOT, 'content', 'background');
 const BACKGROUND_OUT = path.join(ROOT, 'assets', 'background');
 const BACKGROUND_MAX_PX = 2400;
+const BACKGROUND_TALL_WIDTH_PX = 2000;
 const OUT_FILE = path.join(ROOT, 'posts.js');
 // Substack posts are downloaded when you build and saved here, so the site
 // never has to contact Substack while someone is reading it.
@@ -474,7 +475,13 @@ function buildBackgrounds() {
         if (!fs.existsSync(out) || fs.statSync(out).mtimeMs < fs.statSync(src).mtimeMs) {
             try {
                 fs.mkdirSync(BACKGROUND_OUT, { recursive: true });
-                execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '80', '-Z', String(BACKGROUND_MAX_PX), src, '--out', out], { stdio: 'ignore' });
+                // A tall painting is shown as wide as the screen, so it's sized by
+                // its width (sizing by its height would leave it blurry).
+                const size = pixelSize(src);
+                const resize = size.height > size.width
+                    ? (size.width > BACKGROUND_TALL_WIDTH_PX ? ['--resampleWidth', String(BACKGROUND_TALL_WIDTH_PX)] : [])
+                    : ['-Z', String(BACKGROUND_MAX_PX)];
+                execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '80', ...resize, src, '--out', out], { stdio: 'ignore' });
                 console.log(`Prepared background ${path.relative(ROOT, src)}`);
             } catch (e) {
                 if (!isImage(file)) {

@@ -38,7 +38,14 @@ italic and bold rules as writing. Rebuild.
 
 ## Change the home page background
 
-The home page background is made of the photos in `content/background/`.
+With **one** photo in `content/background/`, the home page is a still
+picture: the photo fills the screen and nothing scrolls. That's how it is
+set up now. A tall painting is cropped to fit; to show a higher or lower
+part of it, open `style.css`, find `--home-view: 24%;` and change the
+number (0% is the top of the painting, 100% the bottom).
+
+With **more than one** photo, it goes back to scrolling:
+the home page background is made of the photos in `content/background/`.
 Each one is shown whole, as wide as the screen, and they stack top to
 bottom, so scrolling down the home page scrolls over them one after another.
 Crop the photo to just the painting before adding it.

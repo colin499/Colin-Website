@@ -6,28 +6,10 @@ const home = {
 
 const backgrounds = [
     {
-        "image": "assets/background/1-A Day In The Life.jpg",
-        "title": "1 A Day In The Life",
-        "width": 2400,
-        "height": 2395
-    },
-    {
-        "image": "assets/background/2-IMG_9164.jpg",
-        "title": "2 IMG 9164",
-        "width": 2400,
-        "height": 1800
-    },
-    {
-        "image": "assets/background/3-IMG_9166.jpg",
-        "title": "3 IMG 9166",
-        "width": 1800,
-        "height": 2400
-    },
-    {
-        "image": "assets/background/4-IMG_6488.jpg",
-        "title": "4 IMG 6488",
-        "width": 2400,
-        "height": 1800
+        "image": "assets/background/0-can-I-see.jpg",
+        "title": "0 can I see",
+        "width": 2000,
+        "height": 3240
     }
 ];
 
@@ -39,15 +21,6 @@ const posts = [
         "image": "assets/web/paintings/A Day In The Life.jpg",
         "width": 1800,
         "height": 1796,
-        "caption": "oil on wood , 2026"
-    },
-    {
-        "type": "painting",
-        "date": "2026-10-04",
-        "title": "Jumpy",
-        "image": "assets/web/paintings/Jumpy.jpg",
-        "width": 1800,
-        "height": 1350,
         "caption": "oil on wood , 2026"
     },
     {
@@ -67,6 +40,15 @@ const posts = [
         "width": 1795,
         "height": 1800,
         "caption": "oil on wood"
+    },
+    {
+        "type": "painting",
+        "date": "2026-11-19",
+        "title": "can I see?",
+        "image": "assets/web/paintings/can-I-see.jpg",
+        "width": 1111,
+        "height": 1800,
+        "caption": ""
     },
     {
         "type": "painting",

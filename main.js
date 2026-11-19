@@ -254,11 +254,14 @@ function render() {
         const panels = (typeof backgrounds !== 'undefined' && backgrounds.length)
             ? backgrounds
             : [{ image: 'assets/home-painting.jpg', title: '' }];
+        // With just one photo in content/background/ the home page is a still
+        // picture: it fills the screen and doesn't scroll.
+        const still = panels.length === 1 && !GAMES_ON;
         feed.innerHTML = `
-            <section class="home">
+            <section class="home${still ? ' home-still' : ''}">
                 <div class="home-overlay">
                 <div class="home-card">
-                    <h1 class="home-title">Brain Food</h1>
+                    <h1 class="home-title">Colin Lysik</h1>
                     <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
                     <ul class="home-links">
                         <li><a href="#" onclick="playButtonSound('paintings'); selectFilter('painting', 'paintings'); return false;">paintings</a></li>

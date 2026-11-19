@@ -680,6 +680,24 @@ body.is-home .dropdown-toggle,
     height: auto;
 }
 
+/* With only one photo in content/background/, the home page is a still picture:
+   the photo fills the screen (cropped to fit) and nothing scrolls.
+   --home-view picks which part of a tall painting shows: 0% is its top,
+   100% its bottom. */
+.home-still {
+    --home-view: 24%;
+    flex: none;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+}
+
+.home-still .home-painting {
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% var(--home-view);
+}
+
 /* The gap between two paintings. It starts as a thin black line and parts
    gradually as you scroll, revealing a level of the runner game. The height
    is set by game.js, following the scrolling. */
