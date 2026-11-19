@@ -14,6 +14,10 @@ function toggleDropdown() {
 // reloading stays on the same section and the back button works.
 const SECTIONS = { home: 'home', paintings: 'painting', writing: 'writing', projects: 'projects', cha: 'cha', store: 'store', contact: 'contact' };
 
+// What the buttons and the menu call each section. The address stays as it
+// was (index.html#paintings), so old links keep working.
+const SECTION_NAMES = { paintings: 'paint', writing: 'write', projects: 'other', store: 'buy' };
+
 // Sections shown as a grid of squares that each open into one piece.
 const PIECE_SECTIONS = ['writing', 'projects'];
 
@@ -36,7 +40,7 @@ function showSection(value, label, piece, version) {
     currentPiece = PIECE_SECTIONS.includes(value) && piece ? piece : null;
     currentVersion = currentPiece && version ? version : null;
     currentFilter = value;
-    document.getElementById('dropdown-label').textContent = label;
+    document.getElementById('dropdown-label').textContent = SECTION_NAMES[label] || label;
     document.getElementById('dropdown').classList.remove('open');
     render();
 }
@@ -261,14 +265,13 @@ function render() {
             <section class="home${still ? ' home-still' : ''}">
                 <div class="home-overlay">
                 <div class="home-card">
-                    <h1 class="home-title">Colin Lysik</h1>
                     <div class="post-body home-text">${typeof home !== 'undefined' ? home.html : ''}</div>
                     <ul class="home-links">
-                        <li><a href="#" onclick="playButtonSound('paintings'); selectFilter('painting', 'paintings'); return false;">paintings</a></li>
-                        <li><a href="#" onclick="playButtonSound('writing'); selectFilter('writing', 'writing'); return false;">writing</a></li>
-                        <li><a href="#" onclick="playButtonSound('projects'); selectFilter('projects', 'projects'); return false;">projects</a></li>
+                        <li><a href="#" onclick="playButtonSound('paintings'); selectFilter('painting', 'paintings'); return false;">paint</a></li>
+                        <li><a href="#" onclick="playButtonSound('writing'); selectFilter('writing', 'writing'); return false;">write</a></li>
+                        <li><a href="#" onclick="selectFilter('store', 'store'); return false;">buy</a></li>
+                        <li><a href="#" onclick="playButtonSound('projects'); selectFilter('projects', 'projects'); return false;">other</a></li>
                         <li><a href="#" onclick="playButtonSound('cha'); selectFilter('cha', 'cha'); return false;">cha</a></li>
-                        <li><a href="#" onclick="selectFilter('store', 'store'); return false;">store</a></li>
                         <li><a href="#" onclick="playButtonSound('contact'); selectFilter('contact', 'contact'); return false;">contact</a></li>
                     </ul>
                 </div>
