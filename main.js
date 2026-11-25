@@ -291,6 +291,7 @@ function render() {
             <div class="post post-writing">
                 <a href="mailto:colinlysik@gmail.com">colinlysik@gmail.com</a>
                 <div><a class="button" href="https://colinlysik.substack.com/" target="_blank" rel="noopener">substack</a></div>
+                <div><a class="button" href="https://www.instagram.com/colin_lysik/" target="_blank" rel="noopener">instagram</a></div>
             </div>
         `;
         return;
